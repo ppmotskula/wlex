@@ -1,0 +1,44 @@
+/*
+Default style sheet for wLex 3.1
+
+Last updated on 2009-03-29 by Peeter P. Mõtsküla <peeterpaul@motskula.net>
+*/
+
+body { font: 10pt sans-serif }
+p { margin-bottom: 0 }
+a:link, a:visited { text-decoration: none; color: #369 }
+a:hover { text-decoration: underline }
+del { text-decoration: none; background: #fcc }
+ins { text-decoration: none; background: #cfc }
+.ttl { font-size: 2.4em; font-weight: bold; text-align: center }
+.osa { font-size: 1.8em; font-weight: bold; text-align: center }
+.ptk { font-size: 1.6em; font-weight: bold; text-align: center }
+.jgu { font-size: 1.2em; font-weight: bold; text-align: center }
+.jts { font-size: 1.0em; font-weight: bold; text-align: center }
+.ajt { font-size: 1.0em; text-align: center }
+.pg { font-weight: bold }
+.px { font-weight: normal }
+.x { margin-top: 0 }
+.rem { color: #999 }
+.rem a:link, .rem a:visited { color: #666 }
+#toc p { margin-top: 0.25em }
+#toc .ttl { font-size: 1.4em; font-weight: bold; text-decoration: underline }
+#toc .osa { font-size: 1.4em; font-weight: bold }
+#toc .ptk { font-size: 1.2em; font-weight: bold }
+#toc .jgu { font-size: 1.2em; font-style: italic }
+#toc .jts { font-size: 1.0em; font-style: italic }
+#toc .ajt { font-size: 0.8em; font-style: italic }
+#toc .pg { font-weight: normal }
+@media screen {
+  #nav { position: fixed; left: 0; top: 0; width: 100%; line-height: 2em; background: #69c; border-bottom: 1px solid #369; white-space: nowrap; z-index: 2 }
+  #nav form { padding: 1em }
+  #nav a { color: #fff }
+  #toc { position: fixed; left: 0; top: 4em; bottom: 0; width: 20em; padding: 1em; overflow: auto; background: #eee }
+  #toc p { font-size: 0.8em }
+  #txt { position: fixed; left: 22em; top: 4em; bottom: 0; right: 0; padding: 1em; overflow: auto }
+}
+@media print {
+  #toc { page-break-before: always }
+  #nav { display: none }
+}
+

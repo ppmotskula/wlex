@@ -1,0 +1,102 @@
+
+    wLex 3.1
+    Copyright (C) 2002-2009 Peeter P. Mõtsküla <peeterpaul@motskula.net>
+    Licensed under the GNU General Public License, version 2 or later
+
+
+== Contents ==
+
+ 1. Introduction: what is wLex?
+ 2. Installation and configuration
+ 3. License
+ 4. Special thanks
+
+
+== 1. Introduction: what is wLex? ==
+
+wLex is a tool for formatting and manipulating the legal acts of the
+Republic of Estonia.
+
+wLex came to being because of necessity. When the Law of Obligations
+Act was passed , it was almost impossible to read it without some kind
+of table of contents (the Act contains 1068 paragraphs). And since I
+didn't want to spend money on buying a book version of the Act, I
+wrote a script that helped me create the contents. Later, the script
+underwent several improvements, and currently does the following:
+
+- reformats the texts of the acts to standards-compliant XHTML
+  1.0 (or at least tries to; some acts in eRT contain so much
+  invalid HTML that wLex just can't figure out how to fix them);
+- adds tables of contents to any acts that conform to the formatting
+  rules of Estonian legal acts;
+- facilitates one-click comparison of different versions of any given
+  act provided that the older versions are present in the database of
+  electronic Riigi Teataja (the e-version of the Official Journal);
+
+wLex is written in Perl and consists of a single script and a few
+other files.  wLex uses wget for connecting to eRT, tidy for
+cleaning up the html of received acts, and diff for preparing the
+comparison tables.  It also needs cat, and a cgi-enabled web
+server.  The system is designed and tested on Linux and Apache.
+
+wLex is free software licensed under GNU GPL Version 2. You are free
+to use, modify and distribute it as you like, but you have to keep all
+copyright notes, and if you modify the program, you'll have to change
+the $progID string in the script so everybody would know they are
+working with a modified version.
+
+
+== 2. Installation and configuration ==
+
+- Make sure you have apache, perl, wget, tidy, diff, and cat up and running.
+
+- Unpack the distribution archive somewhere into the directory tree of
+  your web server. In case you fail to keep the original access rights
+  of all files and folders, make sure that the scripts are writeable
+  only by yourself (chmod go-w) and that the subdirectories are
+  writeable by the web server (chmod go+w). Note that the folder where
+  the wlex.pl script is located must also be chmod go-w.
+
+- Create wLex configuration file (config.pl) using sample-config.pl as
+  an example, and edit it according to the instructions provided therein. 
+
+- Test your installation by directing your web browser to your
+  wLex installation. If something doesn't work, try figuring out
+  what's wrong.  You may also contact the author, who **might**
+  have time to help you.
+
+- Enjoy. If you modify the script any way, please also modify the
+  $progID string in wlex.pl, so that your users would know
+  they're working with a modified version.  You may (although you
+  don't have to) also let me know what you changed and how.
+
+- If you want to change the front page, modify wlex.htm. If you want
+  to change the visual style, modify style.css. These modifications
+  alone do not require that you change the $progID strings as long as
+  you do not distribute the modified version of wLex.
+
+
+== 3. License ==
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+USA.
+
+
+== 4. Special thanks ==
+
+- Eric Bednarz (http://tagsoup.com) for examples in his cookbook that
+  helped me hack the CSS in order to make the service also usable to
+  the poor Windows users who haven't yet switched to a decent browser.
+
