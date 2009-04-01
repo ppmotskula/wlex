@@ -56,6 +56,7 @@ my $BR		= "(?:<br(?: /)?>)";
 my $PBR		= "(?:$BR|</p>)";
 my $SSEP	= "(?:\. ?)?(?:\. |$BR\n|(?:</p>\n<p>))";
 my $PARA	= "(?:§ ?|Paragrahv )";
+my $TZDIFF  = 7200; # GMT+2 for Estonia
 
 ### default config parameters and global variables
 my $wlexURI = ''; # must be defined in config.pl for CGI use
@@ -143,7 +144,7 @@ sub now() {
         }
     } else {
         my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) =
-           localtime(time);
+           gmtime(time + $TZDIFF);
         $year += 1900;
         $mon++;
         $date = "$mday.$mon.$year";
@@ -572,7 +573,12 @@ sub sysCat() {
 # get systematic catalog from eRT
     my $toc = qq#<div class="tocexploder">\n<div id="toc">\n#;
     local $_ = wget('https://www.riigiteataja.ee/ert/ert.jsp?link=jaotusyksused-form');
+    unless (m#<!-- Versioon $eRTver,.*?-->#) {
+        # if expected version string is not found, display a warning
+        $toc .= qq#<p class="pg" style="color: red"><strong>HOIATUS: eRT versioon on muutunud</strong></p>\n#;
+    }
     while (s#.*?<td class="jaotusyksus".[^>]*>(.*?)</td>##is) {
+        # build systematic catalog
         my $line = $1;
         if ($line =~ m#<b>(.*?)</b>#) { # section title
             $toc .= qq#<p class="osa">$1</p>\n#;
