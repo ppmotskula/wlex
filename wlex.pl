@@ -16,8 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-
-# wlex.pl
+# wlex.pl usage
 #
 # command-line usage:
 #     wlex.pl
@@ -46,9 +45,9 @@ use URI::Escape;
 use POSIX;
 
 ### global "constants"
-my $progID = 'wLex 3.1';
-my $copyright = '&copy; 2002-2009 Peeter P. Mõtsküla, <a href="http://peeterpaul.motskula.net/">http://peeterpaul.motskula.net/</a>';
-my $eRTver = "1.0.6 build 7"; # expected version of eRT
+my $progID  = 'wLex 3.1';
+my $copyright = '&copy; 2002-2009 <a href="http://peeterpaul.motskula.net/">Peeter P. Mõtsküla</a>';
+my $eRTver  = "1.1.4 build 1"; # expected version of eRT
 my $NUMA	= "[0-9]+";
 my $NUMR	= "[IVXLCDM]+";
 my $NSUP	= "(?:<sup>$NUMA</sup>)";
@@ -58,86 +57,90 @@ my $PBR		= "(?:$BR|</p>)";
 my $SSEP	= "(?:\. ?)?(?:\. |$BR\n|(?:</p>\n<p>))";
 my $PARA	= "(?:§ ?|Paragrahv )";
 
-
-### default config parameters
+### default config parameters and global variables
 my $wlexURI = ''; # must be defined in config.pl for CGI use
 my $wlexTMP = 'wlex-'; # can be overridden in config.pl
 my $wlexTracker = ''; # may be provided in config.pl
-my %acts = ''; # should be provided in abbr.pl
+my %Acts; # should be provided in abbr.pl
 eval `cat config.pl`;
+my %Args;
 
+main();
 
-### main block
-my %args = &getArgs;
-if ($args{'execMethod'} eq 'CLI') {
-    # executed via CLI with at least one parameter
-    if ($args{'act'}) {
-        # format the act
-        print &parse(&getAct($args{'act'}));
-    } elsif ($args{'old'} && $args{'new'}) {
-        # create a diff
-        print &diff(&parse(&getAct($args{'old'})), &parse(&getAct($args{'new'})));
-    } else {
-        # invalid arguments
-        &err("Invalid arguments.");
-    }
-} elsif ($args{'execMethod'} eq 'CGI') {
-    # executed via CGI
-    print "Content-type: text/html\n\n";
-    if (! $wlexURI) {&err("Couldn't read config.pl.")}
-    if ($args{'cat'}) {
-        print &wrap(&catSection($args{'cat'}));
-    } elsif ($args{'find'}) {
-        # find given: display manual search page
-        print &wrap(&findPage($args{'find'}));
-    } elsif ($args{'act'}) {
-        # act given: diff or format
-        if ($args{'old'} && $args{'new'}) {
-            # old and new dates given: diff
-            print &wrap(&addToc(&diff(&parse(&findAct($args{'act'}, $args{'old'})), &parse(&findAct($args{'act'}, $args{'new'})))));
-        } else {
+sub main() {
+    %Args = get_args();
+    if ($Args{'exec_method'} eq 'CLI') {
+        # executed via CLI with at least one parameter
+        if ($Args{'act'}) {
             # format the act
-            print &wrap(&addToc(&parse(&findAct($args{'act'}, &now))));
+            print parse(get_act($Args{'act'}));
+        } elsif ($Args{'old'} && $Args{'new'}) {
+            # create a diff
+            print diff(parse(get_act($Args{'old'})),
+                       parse(get_act($Args{'new'})));
+        } else {
+            # invalid arguments
+            err("Invalid arguments.");
+        }
+    } elsif ($Args{'exec_method'} eq 'CGI') {
+        # executed via CGI
+        print "Content-type: text/html\n\n";
+        if (! $wlexURI) {
+            err("Couldn't read config.pl.");
+            exit;
+        }
+        if ($Args{'cat'}) {
+            print wrap(cat_section($Args{'cat'}));
+        } elsif ($Args{'act'}) {
+            # act given: diff or format
+            if ($Args{'old'} && $Args{'new'}) {
+                # old and new dates given: diff
+                print wrap(add_toc(diff(
+                                    parse(find_act($Args{'act'}, $Args{'old'})),
+                                    parse(find_act($Args{'act'}, $Args{'new'}))
+                                    )));
+            } else {
+                # format the act
+                print wrap(add_toc(parse(find_act($Args{'act'}, now()))));
+            }
+        } else {
+            # no parameters: display front page
+            print wrap(front_page());
         }
     } else {
-        # no parameters: display front page
-        print &wrap(&frontPage);
+        # cannot determine execution method
+        err("Unknown execution method.");
     }
-} else {
-    # cannot determine execution method
-    &err("Unknown execution method.");
 }
-### end of main block
-
 
 sub err($) {
-# display error message and quit
+# display an error message
+# note: err doesn't call die() to allow proper closing of HTML tags
     local $_ = shift;
     print "ERROR: $_";
-    if ($args{'execMethod'} eq 'CGI') { print "<br />" }
+    if ($Args{'exec_method'} eq 'CGI') { print "<br />" }
     print "\n";
     exit;
 }
 
-
 sub wget($) {
 # wget a webpage
     local $_ = shift;
-    return `wget -o /dev/null -O - '$_'` || &err("Cannot wget '$_'.");
+    return `wget -o /dev/null -O - '$_'` || err("Cannot wget '$_'.");
 }
 
-
 sub now() {
-# return $args{'now'} or current date as DD.MM.YYYY
+# return $Args{'now'} or current date as DD.MM.YYYY
     my $date;
-    if ($date = $args{'now'}) {
+    if ($date = $Args{'now'}) {
         $date =~ m#^($NUMA)\.($NUMA)\.($NUMA)$#;
         unless (mktime(0, 0, 0, $1, $2-1, $3-1900)) { # invalid time value
-            $args{'now'} = '';
-            $date = &now;
+            $Args{'now'} = '';
+            $date = now();
         }
     } else {
-        my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+        my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) =
+           localtime(time);
         $year += 1900;
         $mon++;
         $date = "$mday.$mon.$year";
@@ -145,32 +148,32 @@ sub now() {
     return $date;
 }
 
-
-sub getArgs() {
+sub get_args() {
 # get %args from CLI or CGI arguments
     my %args;
     if ($#ARGV >= 0) {
-        $args{'execMethod'} = 'CLI';
+        $args{'exec_method'} = 'CLI';
         if ($#ARGV == 0) {
             $args{'act'} = $ARGV[0];
         } elsif ($#ARGV == 1) {
             $args{'old'} = $ARGV[0];
             $args{'new'} = $ARGV[1];
         }
-    } elsif (($ENV{'REQUEST_METHOD'} eq "GET") || ($ENV{'REQUEST_METHOD'} eq "POST")) {
-        $args{'execMethod'} = 'CGI';
-        my ($cgiData, %formData) = &getCGI;
-        $args{'act'} = $formData{'act'};
-        $args{'now'} = $formData{'now'};
-        $args{'old'} = $formData{'old'};
-        $args{'new'} = $formData{'new'};
-        $args{'find'} = $formData{'find'};
-        $args{'cat'} = $formData{'cat'};
+    } elsif (($ENV{'REQUEST_METHOD'} eq "GET") ||
+            ($ENV{'REQUEST_METHOD'} eq "POST")) {
+        $args{'exec_method'} = 'CGI';
+        my ($cgi_data, %form_data) = get_cgi();
+        $args{'act'}    = $form_data{'act'};
+        $args{'now'}    = $form_data{'now'};
+        $args{'old'}    = $form_data{'old'};
+        $args{'new'}    = $form_data{'new'};
+        $args{'src'}    = $form_data{'src'};
+        $args{'cat'}    = $form_data{'cat'};
     }
     return %args;
 }
 
-sub getCGI() {
+sub get_cgi() {
 # get $cgi_data and %form_data from CGI arguments
     my ($cgi_data, %form_data);
     if ($ENV{'REQUEST_METHOD'} eq 'GET') {
@@ -193,13 +196,13 @@ sub getCGI() {
     return ($cgi_data, %form_data);
 }
 
-
-sub getAct($) {
+sub get_act($) {
 # get act text from source file or URI given in argument
 # if argument begins with https?://, use wget, otherwise file
 
-    # get source file name or URI from argument
+    # get source file name or URI from argument, then attempt to read it
     local $_ = my $src = shift;
+    my $act;
     if (m#^https?://#) {
         # input looks like URI
         $_ = uri_unescape($_);
@@ -211,20 +214,16 @@ sub getAct($) {
         }
         
         if (m#id=$NUMA;$NUMA#) { # multiple links given, display manual find
-            print &wrap(&findPage($_));
+            print wrap(find_page($_));
             exit;
         }
-        s#https://www\.riigiteataja\.ee/ert/act\.jsp\?#https://www.riigiteataja.ee/ert/ert.jsp?link=print&akt_vorminduseta=1&#; # redirect to "akt vorminduseta"
-        open INPUT, "wget -o /dev/null -O - '$_' |" || &err("Cannot wget '$_'.");
+        # redirect to "akt vorminduseta"
+        s#https://www\.riigiteataja\.ee/ert/act\.jsp\?#https://www.riigiteataja.ee/ert/ert.jsp?link=print&akt_vorminduseta=1&#;
+        $act = wget($_);
     } else {
         # input must be a file
-        open INPUT, $_ || &err("Cannot read '$_'.");
+        $act = `cat $_` || err("Cannot read '$_'.");
     }
-
-    # read input file or URL
-    local $/;
-    my $act = <INPUT>;
-    close INPUT;
 
     # extract <body> content
     $act =~ s#^.*?<body.*?>(.*?)</body>.*$#$1#s;
@@ -238,34 +237,47 @@ $act#;
     return $act;
 }
 
-
-sub findAct($;$) {
+sub find_act($;$) {
 # get act text from URI or ((abbreviation or title) and date) given in argument
     local $_;
     my $act = shift;
     if ($act =~ m#^https?://#) {
         # act looks like URI, don't go searching
-        $_ = &getAct($act);
+        $_ = get_act($act);
     } else {
-        eval `cat abbr.pl`;
-        if ($_ = $acts{$act}) { # try finding act name from abbreviation
+        eval `cat abbr.pl`; # no warning given if abbr.pl is not found
+        if ($_ = $Acts{$act}) { # try finding act name from abbreviation
             $act = $_;
         }
         my $now = shift;
         $now =~ m#^($NUMA)\.($NUMA)\.($NUMA)$#;
-        my $searchThis = my $searchERT = "/ert/ert.jsp?link=searchRes&date_day=$1&date_month=$2&date_year=$3&title=$act";
-        my $pageNumber = 0;
-        while ($searchThis) {
-            $_ = &wget("https://www.riigiteataja.ee$searchThis"); # get next page of search results from eRT
-            my $xget = $_; $xget =~ tr/ÕÄÖÜŠŽ/õäöüšž/; # the xget/xact hack is necessary to make accented characters case-insensitive in the following title search
+        my $search_ERT;
+        if ($Args{'src'} eq "pealkirjadest") {
+            $search_ERT =
+              "/ert/ert.jsp?link=searchRes&date_day=$1&date_month=$2&date_year=$3&title=$act";
+        } else {
+            $search_ERT =
+              "/ert/ert.jsp?link=searchRes&date_day=$1&date_month=$2&date_year=$3&text=$act";
+        }
+        my $search_this = $search_ERT;
+        my $page_number = 0;
+        while ($search_this) {
+            # get next page of search results from eRT
+            $_ = wget("https://www.riigiteataja.ee$search_this");
+            # the xget/xact hack is necessary to make accented characters
+            # case-insensitive in the following title search
+            my $xget = $_; $xget =~ tr/ÕÄÖÜŠŽ/õäöüšž/;
             my $xact = $act; $xact =~ tr/ÕÄÖÜŠŽ/õäöüšž/;
-            if ($xget =~ m#.*?<a href="(/ert/act.jsp\?id=[^"]*)">(?:<font [^>]*>)?(?:<u>)?$xact(?:¹)?(?:</u>)?(?:</font>)?</a>#si) { # exact title found
-                $_ = &getAct("https://www.riigiteataja.ee$1");
-                $searchThis = '';
-            } elsif (($pageNumber++ < 3) && (m#<a href="($searchERT&numberLink=$NUMA)"><img src="gfx/dot3.gif" .*?></a>#si)) { # any more pages available? (search up to 3 pages only)
-                $searchThis = $1;
+            if ($xget =~ m#.*?<a href="(/ert/act.jsp\?id=[^"]*)">(?:<font [^>]*>)?(?:<u>)?$xact(?:¹)?(?:</u>)?(?:</font>)?</a>#si) {
+                # exact title found
+                $_ = get_act("https://www.riigiteataja.ee$1");
+                $search_this = '';
+            } elsif (($page_number++ < 3) &&
+                    (m#<a href="($search_ERT&numberLink=$NUMA)"><img src="gfx/dot3.gif" .*?></a>#si)) {
+                # any more pages available? (search up to 3 pages only)
+                $search_this = $1;
             } else { # no more results available, exact title not found, revert to manual search
-                print &wrap(&findPage("https://www.riigiteataja.ee$searchERT"));
+                print wrap(find_page("https://www.riigiteataja.ee$search_ERT"));
                 exit;
             }
         }
@@ -273,12 +285,11 @@ sub findAct($;$) {
     return $_;
 }
 
-
-sub findPage($) {
+sub find_page($) {
 # prepare to display manual search page
     local $_ = shift;
-    $_ = &wget($_);
-    my $now = &now;
+    $_ = wget($_);
+    my $now = now;
     my $link;
     my $toc = qq#<div class="tocexploder">\n<div id="toc">\n#;
     s#.*?Soovitud aktid.*?<font .*?>(.*?)</font>##;
@@ -287,7 +298,8 @@ sub findPage($) {
     # first page
     s#.*?(?:<a href="([^"]*?)">)?<img src="gfx/dot1.gif" .*?>##;
     if ($link = $1) {
-        $link = "$wlexURI?find=https://www.riigiteataja.ee".uri_escape($link)."&act=$args{'act'}&now=$now";
+        $link = "$wlexURI?find=https://www.riigiteataja.ee" .
+                uri_escape($link) . "&act=$Args{'act'}&now=$now&src=$Args{'src'}";
         $toc .= qq#<a href="$link">&lt;&lt;</a> #;
     } else {
         $toc .= "&lt;&lt; ";
@@ -295,7 +307,8 @@ sub findPage($) {
     # previous page
     s#.*?(?:<a href="([^"]*)">)?<img src="gfx/dot2.gif" .*?>##;
     if ($link = $1) {
-        $link = "$wlexURI?find=https://www.riigiteataja.ee".uri_escape($link)."&act=$args{'act'}&now=$now";
+        $link = "$wlexURI?find=https://www.riigiteataja.ee" .
+                uri_escape($link) . "&act=$Args{'act'}&now=$now&src=$Args{'src'}";
         $toc .= qq#<a href="$link">&lt;</a> #;
     } else {
         $toc .= "&lt; ";
@@ -303,7 +316,8 @@ sub findPage($) {
     # next page
     s#.*?(?:<a href="([^"]*)">)?<img src="gfx/dot3.gif" .*?>##;
     if ($link = $1) {
-        $link = "$wlexURI?find=https://www.riigiteataja.ee".uri_escape($link)."&act=$args{'act'}&now=$now";
+        $link = "$wlexURI?find=https://www.riigiteataja.ee" .
+                uri_escape($link) . "&act=$Args{'act'}&now=$now&src=$Args{'src'}";
         $toc .= qq#<a href="$link">&gt;</a> #;
     } else {
         $toc .= "&gt; ";
@@ -311,7 +325,8 @@ sub findPage($) {
     # last page
     s#.*?(?:<a href="([^"]*)">)?<img src="gfx/dot4.gif" .*?>##;
     if ($link = $1) {
-        $link = "$wlexURI?find=https://www.riigiteataja.ee".uri_escape($link)."&act=$args{'act'}&now=$now";
+        $link = "$wlexURI?find=https://www.riigiteataja.ee" .
+                uri_escape($link) . "&act=$Args{'act'}&now=$now&src=$Args{'src'}";
         $toc .= qq#<a href="$link">&gt;&gt;</a> #;
     } else {
         $toc .= "&gt;&gt; ";
@@ -322,7 +337,8 @@ sub findPage($) {
     # list of acts
     my $page = qq#<div class="txtexploder">\n<div id="txt">\n<ul>\n#;
     while (s#.*?<a href="(/ert/act.jsp\?id=[^"]*)">(?:<font [^>]*>)?(?:<u>)?(.*?(?:¹)?)(?:</u>)?(?:</font>)?</a>##si) {
-        $link = "$wlexURI?act=https://www.riigiteataja.ee".uri_escape($1)."&now=$now";
+        $link = "$wlexURI?act=https://www.riigiteataja.ee" .
+                uri_escape($1) . "&now=$now&src=$Args{'src'}";
         $page .= qq#<li class="x"><a href="$link">$2</a></p>\n#;
     }
     # close <div id="txt">
@@ -330,7 +346,6 @@ sub findPage($) {
     $_ = qq#<div id="act">\n$page$toc</div> <!-- /act -->\n#;
     return $_;
 }
-
 
 sub parse($) {
 # format the html provided in parameter
@@ -351,18 +366,18 @@ sub parse($) {
     my $src = $1;
 
     # remove useless formatting & fill-ins
-    s#<img.*?<br />\n<br />##si;		# kill top-of-page spacer
-    s#\s +# #gsi;				# multiple spaces to single space
-    s# ($NSUP)#$1#gsi;			# remove spaces before superscripted numbers
-    s#§ -#§-#gsi;				# remove spaces between § and -
-    s#</?(?:b|i|strong|em)>##gsi;		# kill <b>, <i>, <strong>, <em> and their closing tags
-    s#<p.*?>#<p>#gsi;			# fancy <p> to plain <p>
-    s#<p> *$BR* *</p>##gsi;		# kill empty <p>...</p>
-    ##### s#$BR\n?#</p>\n<p>#gsi;		# convert <br /> to </p>\n<p>
-    s#\n *\n#\n#gsi;			# kill empty lines
-    s#($NUMA)\. +($NUMA)#$1.$2#gs;	# spaced dates to nonspaced dates
-    s#</?span.*?>##gsi;			# kill <span> and </span>
-    s#</?div.*?>##gsi;			# kill <div> and </div>
+    s#<img.*?<br />\n<br />##si;    # kill top-of-page spacer
+    s#\s +# #gsi;                   # multiple spaces to single space
+    s# ($NSUP)#$1#gsi;              # remove spaces before superscripted numbers
+    s#§ -#§-#gsi;                   # remove spaces between § and -
+    s#</?(?:b|i|strong|em)>##gsi;   # kill <b>, <i>, <strong>, <em> and their closing tags
+    s#<p.*?>#<p>#gsi;               # fancy <p> to plain <p>
+    s#<p> *$BR* *</p>##gsi;         # kill empty <p>...</p>
+    ##### s#$BR\n?#</p>\n<p>#gsi;   # convert <br /> to </p>\n<p>
+    s#\n *\n#\n#gsi;                # kill empty lines
+    s#($NUMA)\. +($NUMA)#$1.$2#gs;  # spaced dates to nonspaced dates
+    s#</?span.*?>##gsi;             # kill <span> and </span>
+    s#</?div.*?>##gsi;              # kill <div> and </div>
     
     # complete eRT links or convert to wLex links
     if ($wlexURI) {
@@ -373,7 +388,7 @@ sub parse($) {
     s#<img src="get-attachment.jsp#<img src="https://www.riigiteataja.ee/ert/get-attachment.jsp#gs;
 
     # get act title
-    s#\n<p>(.*?)( ?$NSUP?)</p>#\n<p class="ttl">$1$2</p>#i; ##### maybe use $PBR here to catch weird titles
+    s#\n<p>(.*?)( ?$NSUP?)</p>#\n<p class="ttl">$1$2</p>#i;
     my $title=$1;
 
     # format special paragraphs
@@ -409,9 +424,9 @@ sub parse($) {
 
     # add links to view old versions and diffs
     {
-        my $now = &now;
+        my $now = now;
         my $ttl = uri_escape($title);
-        s#(<p class="x">.*?\) )($NUMA\.$NUMA\.$NUMA)(.*?)(</p>)#$1$2$3 (<a href="$wlexURI?act=$ttl&amp;now=$2">vaata</a> | <a href="$wlexURI?act=$ttl&amp;new=$now&amp;old=$2">võrdle</a>)$4#gs;
+        s#(<p class="x">.*?\) )($NUMA\.$NUMA\.$NUMA)(.*?)(</p>)#$1$2$3 (<a href="$wlexURI?act=$ttl&amp;&now=$2">vaata</a> | <a href="$wlexURI?act=$ttl&amp;new=$now&amp;old=$2">võrdle</a>)$4#gs;
     }
     
     # rem: inlined comments []
@@ -430,21 +445,21 @@ sub parse($) {
     return $_;
 }
 
-
 sub wrap($) {
-# add wlex pagewrapper & searchbar to the body content provided, using optional page title
+# add wlex pagewrapper & searchbar to the body content provided,
+# using optional page title
     local $_ = shift;
     my $title;
     if (m#<p class="ttl">(.*?) ?$NSUP?</p>#s) {
         $title = $1;
     }
-    my $act = $args{'act'};
+    my $act = $Args{'act'};
     $act =~ s#https?://.*#$title#;
     $title = "wLex: $title" unless ($title =~ /^wLex: /);
-    my $now = &now;
+    my $now = now;
     s#<div id="act">#<div id="act">
 <div id="nav">
-<form action="$wlexURI" method="get"><a href="$wlexURI">wLex</a> | otsing : <input type="text" name="act" size="30" value="$act" /> seisuga <input type="text" name="now" size="10" value="$now" /> <input type="submit" name="search" value="pealkirjadest" /><input type="submit" name="search" value="tekstidest" /></form>
+<form action="$wlexURI" method="get"><a href="$wlexURI">wLex</a> | otsing : <input type="text" name="act" size="30" value="$act" /> seisuga <input type="text" name="now" size="10" value="$now" /> <input type="submit" name="src" value="pealkirjadest" /><input type="submit" name="src" value="tekstidest" /></form>
 </div> <!-- /nav -->#;
     $_ = qq#<!-- quirksmode -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -468,7 +483,6 @@ $wlexTracker
     return $_;
 }
 
-
 sub tfpipe($$) {
     # usage: &tfpipe($cmd, $data)
     # ! $cmd must contain a free-standing '-'
@@ -479,9 +493,9 @@ sub tfpipe($$) {
         last unless (-e $tmp); # try again if $tmp exists;
     }
     $cmd = shift; # get command
-    $cmd =~ s/(\s)(-)(\s|\z)/$1$tmp$3/ || &err("No '-' in command '$cmd'.");
+    $cmd =~ s/(\s)(-)(\s|\z)/$1$tmp$3/ || err("No '-' in command '$cmd'.");
     $data = shift; # get data
-    open TMP, ">$tmp" || &err("Cannot open temporary file '$tmp' for writing.");
+    open TMP, ">$tmp" || err("Cannot open temporary file '$tmp' for writing.");
     print TMP $data;
     close TMP;
     local $_ = `$cmd`;
@@ -489,10 +503,9 @@ sub tfpipe($$) {
     return $_;
 }
 
-
-sub addToc($) {
+sub add_toc($) {
     # create table of contents
-    # usage: &addToc($parsedAct)
+    # usage: add_toc($parsedAct)
     local $_ = shift || die "ERROR: nothing to add TOC to.\n";
 
     split /\n/;
@@ -510,7 +523,8 @@ sub addToc($) {
             my $nx = $pnum;
             $nx =~ s#<sup>#.#;
             $nx =~ s#</sup>##;
-            if ($tagA eq "<del>") { # special anchors for deleted paragraphs (in diff)
+            if ($tagA eq "<del>") {
+                # special anchors for deleted paragraphs (in diff)
                 $nx .= "x";
             }
             $_ = "<a name=\"p$nx\"></a>$para$tagA§ $pnum$text$tagZ</p>";
@@ -541,28 +555,29 @@ $toc</div> <!-- /toc -->
     return $_;
 }
 
-
-sub frontPage() {
+sub front_page() {
 # show systematic catalog in TOC and welcome message in TXT
     my $toc = &sysCat;
-    my $txt = qq#<div class="txtexploder">\n<div id="txt">\n#.`cat cover.htm`.qq#</div> <!-- /txt -->\n</div> <!-- /txtexploder -->#;
+    my $txt = qq#<div class="txtexploder">\n<div id="txt">\n# . `cat cover.htm` .
+              qq#</div> <!-- /txt -->\n</div> <!-- /txtexploder -->#;
     $txt =~ s#\$progID#$progID#gs;
     return qq#<div id="act">\n$txt$toc</div> <!-- /act -->#;
 }
 
-
 sub sysCat() {
 # get systematic catalog from eRT
     my $toc = qq#<div class="tocexploder">\n<div id="toc">\n#;
-    local $_ = &wget('https://www.riigiteataja.ee/ert/ert.jsp?link=jaotusyksused-form');
+    local $_ = wget('https://www.riigiteataja.ee/ert/ert.jsp?link=jaotusyksused-form');
     while (s#.*?<td class="jaotusyksus".[^>]*>(.*?)</td>##is) {
         my $line = $1;
         if ($line =~ m#<b>(.*?)</b>#) { # section title
             $toc .= qq#<p class="osa">$1</p>\n#;
-        } elsif ($line =~ m#<a href="(ert.jsp\?link=jaotusyksuse-aktid&jaotusyksused=.*?)">(.*?) *</a>#) { # subsection link
+        } elsif ($line =~ m#<a href="(ert.jsp\?link=jaotusyksuse-aktid&jaotusyksused=.*?)">(.*?) *</a>#) {
+            # subsection link
             my $link = $1;
             my $title = $2;
-            $link = qq#$wlexURI?cat=https://www.riigiteataja.ee/ert/#.uri_escape($link);
+            $link = qq#$wlexURI?cat=https://www.riigiteataja.ee/ert/# .
+                    uri_escape($link);
             $toc .= qq#<p class="pg"><a href="$link">$title</a></p>\n#;
         }
     }
@@ -570,17 +585,16 @@ sub sysCat() {
     return $toc;
 }
 
-
-sub catSection($) {
+sub cat_section($) {
 # show selected section of eRT's systematic catalog
     my $toc = &sysCat;
     my $txt = qq#<div class="txtexploder">\n<div id="txt">\n<ul>\n#;
-    local $_ = &wget(shift);
+    local $_ = wget(shift);
     s#.*?class="pealkiri1"><b>(.*?) > (.*?) : ##;
     $txt .= qq#<p class="ttl">$1 &gt; $2</p>\n#;
     # list of acts
     while (s#.*?<a href="(/ert/act.jsp\?id=[^"]*)">(?:<font [^>]*>)?(?:<u>)?(.*?(?:¹)?)(?:</u>)?(?:</font>)?</a>##si) {
-        my $link = "$wlexURI?act=https://www.riigiteataja.ee".uri_escape($1);
+        my $link = "$wlexURI?act=https://www.riigiteataja.ee" . uri_escape($1);
         $txt .= qq#<li class="x"><a href="$link">$2</a></p>\n#;
     }
     $txt .= qq#</ul>\n</div> <!-- /txt -->\n</div> <!-- /txtexploder -->\n#;
@@ -600,7 +614,7 @@ sub diff($$) {
         $tfa =~ s/0./$wlexTMP/; # ! uses global $TMP
         last unless (-e $tfa); # try again if file exists;
     }
-    open TMP, ">$tfa" || &err("Cannot open temporary file '$tfa' for writing.");
+    open TMP, ">$tfa" || err("Cannot open temporary file '$tfa' for writing.");
     print TMP $old;
     close TMP;
     while (1) {
@@ -608,7 +622,7 @@ sub diff($$) {
         $tfb =~ s/0./$wlexTMP/; # ! uses global $TMP
         last unless (-e $tfb); # try again if file exists;
     }
-    open TMP, ">$tfb" || &err("Cannot open temporary file '$tfb' for writing.");
+    open TMP, ">$tfb" || err("Cannot open temporary file '$tfb' for writing.");
     print TMP $new;
     close TMP;
 
