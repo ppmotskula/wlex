@@ -91,6 +91,9 @@ sub main() {
         }
         if ($Args{'cat'}) {
             print wrap(cat_section($Args{'cat'}));
+        } elsif ($Args{'find'}) {
+            # find given: display manual search page
+            print wrap(find_page($Args{'find'}));
         } elsif ($Args{'act'}) {
             # act given: diff or format
             if ($Args{'old'} && $Args{'new'}) {
@@ -168,6 +171,7 @@ sub get_args() {
         $args{'old'}    = $form_data{'old'};
         $args{'new'}    = $form_data{'new'};
         $args{'src'}    = $form_data{'src'};
+        $args{'find'}   = $form_data{'find'};
         $args{'cat'}    = $form_data{'cat'};
     }
     return %args;
