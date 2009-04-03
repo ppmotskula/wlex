@@ -38,11 +38,12 @@
 #         creates and formats the diff of the act as of d1 (old) and d2 (new)
 #
 # input must conform to the format of "akt vorminduseta" in www.riigiteataja.ee
-# dependencies: tidy, diff, wget
+# dependencies: tidy, diff, wget, URI::Escape, Mail::Sendmail
 
 use strict;
-use URI::Escape;
 use POSIX;
+use URI::Escape;
+use Mail::Sendmail;
 
 ### global "constants"
 my $progID  = 'wLex 3.1';
@@ -59,12 +60,15 @@ my $PARA	= "(?:§ ?|Paragrahv )";
 my $TZDIFF  = 7200; # GMT+2 for Estonia
 
 ### default config parameters and global variables
-my $wlexURI = ''; # must be defined in config.pl for CGI use
-my $wlexTMP = 'wlex-'; # can be overridden in config.pl
-my $wlexTracker = ''; # may be provided in config.pl
-my %Acts; # should be provided in abbr.pl
+my $wlexURI     = '';       # must be defined in config.pl for CGI use
+my $wlexTMP     = 'wlex-';  # can be overridden in config.pl
+my $wlexTracker = '';       # may be provided in config.pl
+my $bugFROM     = 'peeterpaul@motskula.net'; # bug reports sent from
+my $bugTO       = 'ticket+wolli.28256-zm4h6kpq@lighthouseapp.com'; # bug reports sent to
+my $bugURI      = 'http://wolli.lighthouseapp.com/projects/28256-wlex/home'; # bug tracker
+my %Acts;                   # should be provided in abbr.pl
+my %Args;                   # CLI or CGI argument list
 eval `cat config.pl`;
-my %Args;
 
 main();
 
@@ -90,7 +94,11 @@ sub main() {
             err("Couldn't read config.pl.");
             exit;
         }
-        if ($Args{'cat'}) {
+        if ($Args{'bug'} eq "form") {
+            print wrap(bug_form());
+        } elsif ($Args{'bug'} eq "send") {
+            print wrap(bug_send());
+        } elsif ($Args{'cat'}) {
             print wrap(cat_section($Args{'cat'}));
         } elsif ($Args{'find'}) {
             # find given: display manual search page
@@ -154,26 +162,19 @@ sub now() {
 
 sub get_args() {
 # get %args from CLI or CGI arguments
-    my %args;
+    my (%args, $cgi_data);
     if ($#ARGV >= 0) {
-        $args{'exec_method'} = 'CLI';
         if ($#ARGV == 0) {
             $args{'act'} = $ARGV[0];
         } elsif ($#ARGV == 1) {
             $args{'old'} = $ARGV[0];
             $args{'new'} = $ARGV[1];
         }
+        $args{'exec_method'} = 'CLI';
     } elsif (($ENV{'REQUEST_METHOD'} eq "GET") ||
             ($ENV{'REQUEST_METHOD'} eq "POST")) {
+        ($cgi_data, %args) = get_cgi();
         $args{'exec_method'} = 'CGI';
-        my ($cgi_data, %form_data) = get_cgi();
-        $args{'act'}    = $form_data{'act'};
-        $args{'now'}    = $form_data{'now'};
-        $args{'old'}    = $form_data{'old'};
-        $args{'new'}    = $form_data{'new'};
-        $args{'src'}    = $form_data{'src'};
-        $args{'find'}   = $form_data{'find'};
-        $args{'cat'}    = $form_data{'cat'};
     }
     return %args;
 }
@@ -461,11 +462,25 @@ sub wrap($) {
     my $act = $Args{'act'};
     $act =~ s#https?://.*#$title#;
     $title = "wLex: $title" unless ($title =~ /^wLex: /);
-    my $now = now;
+    my $now = now();
+    my $args = '';
+    while (my ($key, $val) = each(%Args)) {
+        $args .= "&$key=$val";
+    }
     s#<div id="act">#<div id="act">
 <div id="nav">
-<form action="$wlexURI" method="get"><a href="$wlexURI">wLex</a> | otsing : <input type="text" name="act" size="30" value="$act" /> seisuga <input type="text" name="now" size="10" value="$now" /> <input type="submit" name="src" value="pealkirjadest" /><input type="submit" name="src" value="tekstidest" /></form>
+<form action="$wlexURI" method="get">
+  <a href="$wlexURI">wLex</a> |
+  otsing : <input type="text" name="act" size="30" value="$act" />
+  seisuga <input type="text" name="now" size="10" value="$now" />
+  <input type="submit" name="src" value="pealkirjadest" /
+  <input type="submit" name="src" value="tekstidest" />
+</form>
 </div> <!-- /nav -->#;
+    unless ($Args{'bug'}) {
+        s#</form>#  | <a href="$wlexURI?bug=form$args">abi</a>
+</form>#;
+    }
     $_ = qq#<!-- quirksmode -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -562,14 +577,14 @@ $toc</div> <!-- /toc -->
 
 sub front_page() {
 # show systematic catalog in TOC and welcome message in TXT
-    my $toc = &sysCat;
+    my $toc = sys_cat();
     my $txt = qq#<div class="txtexploder">\n<div id="txt">\n# . `cat cover.htm` .
               qq#</div> <!-- /txt -->\n</div> <!-- /txtexploder -->#;
     $txt =~ s#\$progID#$progID#gs;
     return qq#<div id="act">\n$txt$toc</div> <!-- /act -->#;
 }
 
-sub sysCat() {
+sub sys_cat() {
 # get systematic catalog from eRT
     my $toc = qq#<div class="tocexploder">\n<div id="toc">\n#;
     local $_ = wget('https://www.riigiteataja.ee/ert/ert.jsp?link=jaotusyksused-form');
@@ -597,7 +612,7 @@ sub sysCat() {
 
 sub cat_section($) {
 # show selected section of eRT's systematic catalog
-    my $toc = &sysCat;
+    my $toc = sys_cat();
     my $txt = qq#<div class="txtexploder">\n<div id="txt">\n<ul>\n#;
     local $_ = wget(shift);
     s#.*?class="pealkiri1"><b>(.*?) > (.*?) : ##;
@@ -650,4 +665,105 @@ sub diff($$) {
     $diff =~ s#\+(<p(?: .*?)?>)(.*?)(</p>)#$1<ins>$2</ins>$3#gs;
 
     return $diff;
+}
+
+sub bug_form() {
+# show bug report form
+    my ($uri, $key, $val, $txt, $toc);
+    
+    # create TOC and prepare $uri
+    my $toc = qq#<div class="tocexploder">\n<div id="toc">\n# .
+              qq#<p class="pg"><b>$progID</b></p>
+<p class="pg">issues: <a href="http://wolli.lighthouseapp.com/projects/28256/home">Lighthouse</a></p>
+<p class="pg">source: <a href="http://github.com/wolli/wlex/">GitHub</a></p>
+#;
+
+    while (($key, $val) = each(%Args)) {
+        unless (($key eq 'bug') || ($key eq 'exec_method')) {
+            $toc .= qq#<p class="pg">$key: $val</p>\n#;
+            if ($uri) {
+                $uri .= "&$key=$val";
+            } else {
+                $uri = "$wlexURI?$key=$val";
+            }
+        }
+    }
+    $toc .= qq#</div> <!-- /toc -->\n</div> <!-- /tocexploder -->#;
+    
+    # create TXT
+    $txt = qq#<div class="txtexploder">\n<div id="txt">\n# .
+           qq#<p class="ttl">wLex: abiinfo</p>
+
+<p>Kus viga näed laita, seal tule ja aita -- kasvõi viga laita ;)</p>
+
+<p>Vigadest ja puudustest teatamine võimaldab mul wLex'i paremaks teha,
+nii et pane aga julgesti kirja, mis Sind viimati vaadatud lehel häiris -- oli
+see siis sisukorrastajale märkamata jäänud pealkiri või midagi muud.
+Viide lehele, kus Sa probleemi märkasid, läheb teatega automaatselt kaasa,
+nii et seda pole Sul vaja ümber kirjutama hakata. Lehe väljanägemist puudutavate
+murede puhul tasuks aga kindlasti ära märkida, millist veebilehitsejat (Firefox,
+Internet Explorer, Safari, Opera, ...) ja operatsioonisüsteemi Sa kasutad.
+Kui oled huvitatud tagasisidest, lisa veateate lõppu oma nimi ja meiliaadress.</p>
+
+<form action="$wlexURI" method="post"><p>
+  <input type="hidden" name="bug" value="send" />
+  <input type="hidden" name="URI" value="$uri" />
+  <textarea name="report" rows="12" cols="60"></textarea>
+  <br />
+  <input type="submit" value="saada" />
+</p></form>
+
+<p>Tehnilist laadi lisainfo, mis mõeldud peamiselt asjatundlikele kasutajatele
+ja võimalikele kaasautoritele, on kättesaadav <a href="http://wolli.lighthouseapp.com/projects/28256/home">siit</a>.</p>
+
+<p>Kui sattusid siia kogemata ja teadet saata ei taha, mine
+<a href="$uri">vaadatud akti juurde tagasi</a>.</p>
+#;
+    $txt .= qq#</div> <!-- /txt -->\n</div> <!-- /txtexploder -->#;
+
+    return qq#<div id="act">\n$txt$toc</div> <!-- /act -->#;
+}
+
+sub bug_send() {
+# send bug report, show message in TXT
+    my ($txt, $key, $val, $toc, %mail);
+    
+    $toc = qq#<div class="tocexploder">\n<div id="toc">\n# .
+           qq#</div> <!-- /toc -->\n</div> <!-- /tocexploder -->#;
+    $txt = qq#<div class="txtexploder">\n<div id="txt">\n#;
+    
+    %mail = ( To      => $bugTO,
+              From    => $bugFROM,
+              Subject => $Args{'URI'},
+              Message => $Args{'report'}
+           );
+
+    if (sendmail(%mail)) {
+        # mail sent OK
+        $txt .= qq#<p class="ttl">Tänan teavitamast!</p>
+
+<pre>$Args{'report'}</pre>
+
+<p>Sinu teade sai ära saadetud ning peaks olema edaspidi kättesaadav
+<a href="$bugURI">siit</a>.</p>
+<p>Kui panid kirja ka oma nime ja meiliaadressi, võtan Sinuga vajaduse ja võimaluse
+tekkides ühendust.</p>
+
+<p><a href="$Args{'URI'}">Tagasi akti juurde</a></p>
+#;
+    } else {
+        # mail failure
+        $txt .= qq#<p class="ttl">Tõrge teate saatmisel</p>
+<pre>$Args{'report'}</pre>
+
+<p>Sinu teate saatmine ebaõnnestus. Proovi see uuesti sisestada
+<a href="$bugURI">siitkaudu</a>.</p>
+
+<p><a href="$Args{'URI'}">Tagasi akti juurde</a></p>
+#;
+    }
+
+    $txt .= qq#</div> <!-- /txt -->\n</div> <!-- /txtexploder -->#;
+    
+    return qq#<div id="act">\n$txt$toc</div> <!-- /act -->#;
 }
