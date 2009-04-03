@@ -1,1 +1,5 @@
 DirectoryIndex wlex.pl
+Options +FollowSymLinks
+RewriteEngine on
+RewriteRule ^([^\.]+)$ ?act=$1
+

@@ -46,7 +46,7 @@ use URI::Escape;
 use Mail::Sendmail;
 
 ### global "constants"
-my $progID  = 'wLex 3.1';
+my $progID  = 'wLex 3.1.1';
 my $copyright = '&copy; 2002-2009 <a href="http://peeterpaul.motskula.net/">Peeter P. Mõtsküla</a>';
 my $eRTver  = "1.1.4 build 1"; # expected version of eRT
 my $NUMA	= "[0-9]+";
@@ -258,12 +258,12 @@ sub find_act($;$) {
         my $now = shift;
         $now =~ m#^($NUMA)\.($NUMA)\.($NUMA)$#;
         my $search_ERT;
-        if ($Args{'src'} eq "pealkirjadest") {
-            $search_ERT =
-              "/ert/ert.jsp?link=searchRes&date_day=$1&date_month=$2&date_year=$3&title=$act";
-        } else {
+        if ($Args{'src'} eq "tekstidest") {
             $search_ERT =
               "/ert/ert.jsp?link=searchRes&date_day=$1&date_month=$2&date_year=$3&text=$act";
+        } else {
+            $search_ERT =
+              "/ert/ert.jsp?link=searchRes&date_day=$1&date_month=$2&date_year=$3&title=$act";
         }
         my $search_this = $search_ERT;
         my $page_number = 0;
