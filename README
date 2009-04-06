@@ -65,6 +65,10 @@ working with a modified version.
   what's wrong.  You may also contact the author, who **might**
   have time to help you.
 
+- Create sitemap.xml by executing `perl sitemap.pl` within your wLex
+  installation directory. Keep in mind that you should do it again
+  whenever you update (or get a new version of) abbr.pl.
+
 - Enjoy. If you modify the script any way, please also modify the
   $progID string in wlex.pl, so that your users would know
   they're working with a modified version.  You may (although you
