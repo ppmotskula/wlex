@@ -54,7 +54,8 @@ sub main() {
     open SITEMAP, '>sitemap.xml' or die "Cannot write sitemap.xml, exiting.\n";
     print SITEMAP create_sitemap();
     close SITEMAP;
-    print "Done.\n";
+    print qq#Done. Please make sure your /robots.txt contains\n# .
+          qq#'Sitemap: $wlexURI# . qq#sitemap.xml'.\n#;
 }
 
 sub create_sitemap() {
