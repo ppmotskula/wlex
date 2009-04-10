@@ -31,7 +31,7 @@ use POSIX;
 use URI::Escape;
 
 ### global "constants"
-my $progID  = 'wLex 3.1.2'; # will produce warning if versions do not match
+my $progID  = 'wLex 3.1.3'; # will produce warning if versions do not match
 
 ### default config parameters and global variables
 my $wlexURI = '';           # must be defined in config.pl

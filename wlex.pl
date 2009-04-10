@@ -46,7 +46,7 @@ use URI::Escape;
 use Mail::Sendmail;
 
 ### global "constants"
-my $progID  = 'wLex 3.1.2';
+my $progID  = 'wLex 3.1.3';
 my $copyright = '&copy; 2002-2009 <a href="http://peeterpaul.motskula.net/">Peeter P. Mõtsküla</a>';
 my $eRTver  = "1.1.4 build 1"; # expected version of eRT
 my $NUMA	= "[0-9]+";
@@ -734,7 +734,7 @@ sub bug_send() {
     
     %mail = ( To      => $bugTO,
               From    => $bugFROM,
-              Subject => $Args{'URI'},
+              Subject => ($Args{'URI'} or $wlexURI),
               Message => $Args{'report'}
            );
 
