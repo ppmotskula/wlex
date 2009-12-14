@@ -1,5 +1,35 @@
-DirectoryIndex wlex.pl
+ErrorDocument 500 /wlex/man/
+
 Options +FollowSymLinks
+RewriteBase /wlex
+DirectoryIndex index.php
 RewriteEngine on
-RewriteRule ^([^\.]+)$ ?act=$1
+
+RewriteCond %{QUERY_STRING} ^act=(.+)&now=([^&]+)&old=(^&]+)$
+RewriteRule ^q$ %1/%2/%3? [R,L]
+
+RewriteCond %{QUERY_STRING} ^act=(.+)&now=([^&]+)$
+RewriteRule ^q$ %1/%2? [R,L]
+
+RewriteCond %{QUERY_STRING} ^act=([^&]+)$
+RewriteRule ^q$ %1? [R,L]
+
+RewriteCond %{QUERY_STRING} ^act=(&|$)
+RewriteRule ^.*$ src/? [R,L]
+
+RewriteCond %{QUERY_STRING} ^(.*)$
+RewriteRule ^q$ ?%1 [R,L]
+
+RewriteCond %{REQUEST_FILENAME} -d [OR]
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^(.*)$ $1 [L]
+
+# change d.mm.yyyy to 0d.mm.yyyy
+RewriteRule ^([^/]+)/([^/]+)/([1-9])\.([0-9.]+)/?$ $1/$2/0$3.$4 [R,L]
+RewriteRule ^([^/]+)/([1-9])\.([0-9.]+)/?$ $1/0$2.$3 [R,L]
+
+RewriteRule ^(new|old|cat|src|man)/?$ ?$1 [L]
+RewriteRule ^([^/]+)/([^/]+)/([^/]+)/?$ ?act=$1&now=$2&old=$3 [L]
+RewriteRule ^([^/]+)/([^/]+)/?$ ?act=$1&now=$2 [L]
+RewriteRule ^([^/]+)/?$ ?act=$1 [L]
 

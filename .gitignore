@@ -1,3 +1,5 @@
-config.pl
+config.php
 sitemap.xml
+data/*
+update.sh
 

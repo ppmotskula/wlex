@@ -1,44 +1,232 @@
 /*
-Default style sheet for wLex 3.1
+CSS style sheet for wLex 4.0+
 
-Last updated on 2009-03-29 by Peeter P. Mõtsküla <peeterpaul@motskula.net>
+Last updated on 2009-12-01 by Peeter P. Mõtsküla <peeterpaul@motskula.net>
 */
 
-body { font: 10pt sans-serif }
-p { margin-bottom: 0 }
-a:link, a:visited { text-decoration: none; color: #369 }
-a:hover { text-decoration: underline }
-del { text-decoration: none; background: #fcc }
-ins { text-decoration: none; background: #cfc }
-.ttl { font-size: 2.4em; font-weight: bold; text-align: center }
-.osa { font-size: 1.8em; font-weight: bold; text-align: center }
-.ptk { font-size: 1.6em; font-weight: bold; text-align: center }
-.jgu { font-size: 1.2em; font-weight: bold; text-align: center }
-.jts { font-size: 1.0em; font-weight: bold; text-align: center }
-.ajt { font-size: 1.0em; text-align: center }
-.pg { font-weight: bold }
-.px { font-weight: normal }
-.x { margin-top: 0 }
-.rem { color: #999 }
-.rem a:link, .rem a:visited { color: #666 }
-#toc p { margin-top: 0.25em }
-#toc .ttl { font-size: 1.4em; font-weight: bold; text-decoration: underline }
-#toc .osa { font-size: 1.4em; font-weight: bold }
-#toc .ptk { font-size: 1.2em; font-weight: bold }
-#toc .jgu { font-size: 1.2em; font-style: italic }
-#toc .jts { font-size: 1.0em; font-style: italic }
-#toc .ajt { font-size: 0.8em; font-style: italic }
-#toc .pg { font-weight: normal }
-@media screen {
-  #nav { position: fixed; left: 0; top: 0; width: 100%; line-height: 2em; background: #69c; border-bottom: 1px solid #369; white-space: nowrap; z-index: 2 }
-  #nav form { padding: 1em }
-  #nav a { color: #fff }
-  #toc { position: fixed; left: 0; top: 4em; bottom: 0; width: 20em; padding: 1em; overflow: auto; background: #eee }
-  #toc p { font-size: 0.8em }
-  #txt { position: fixed; left: 22em; top: 4em; bottom: 0; right: 0; padding: 1em; overflow: auto }
+/* default visual */
+body {
+font:10pt sans-serif;
 }
-@media print {
-  #toc { page-break-before: always }
-  #nav { display: none }
+p {
+margin-bottom:0;
+}
+h1 {
+font-size:2em;
+}
+a:link, a:visited {
+text-decoration:none;
+color:#369;
+}
+a:hover {
+text-decoration:underline;
+}
+del {
+text-decoration:strikeout;
+color:#c00;
+}
+ins {
+text-decoration:underline;
+color:#0c0;
+}
+.ttl {
+font-size:2.4em;
+font-weight:bold;
+text-align:center;
+}
+.osa {
+font-size:1.8em;
+font-weight:bold;
+text-align:center;
+}
+.ptk {
+font-size:1.6em;
+font-weight:bold;
+text-align:center;
+}
+.jgu {
+font-size:1.2em;
+font-weight:bold;
+text-align:center;
+}
+.jts {
+font-size:1.0em;
+font-weight:bold;
+text-align:center;
+}
+.ajt {
+font-size:1.0em;
+text-align:center;
+}
+.pg {
+font-weight:bold;
+}
+.px {
+font-weight:normal;
+}
+.x {
+margin-top:0;
+}
+.rem {
+color:#999;
+font-weight:normal;
+font-size:1.0em;
+}
+.rem a:link, .rem a:visited {
+color:#666;
+}
+.diff {
+float:right;
+background:#ff0;
+}
+#toc p {
+margin-top:0.25em;
+}
+#toc .ttl {
+font-size:1.4em;
+font-weight:bold;
+text-decoration:underline;
+}
+#toc .osa {
+font-size:1.4em;
+font-weight:bold;
+}
+#toc .ptk {
+font-size:1.2em;
+font-weight:bold;
+}
+#toc .jgu {
+font-size:1.2em;
+font-style:italic;
+}
+#toc .jts {
+font-size:1.0em;
+font-style:italic;
+}
+#toc .ajt {
+font-size:0.8em;
+font-style:italic;
+}
+#toc .pg {
+font-weight:normal;
+}
+#toc .att {
+font-weight:bold;
 }
 
+@media screen {
+  /* on-screen visual */
+  div#header {
+  background:#69c;
+  }
+  div#header h1 {
+  height:1em;
+  margin:0;
+  padding:0.5em 0.5em 0 0.5em;
+  }
+  div#header form {
+  margin-right:1em;
+  }
+  div#header form input {
+  border:0 }
+  div#toc p {
+  font-size:0.8em;
+  }
+
+  /* menubar */
+  div#menu ul {
+  list-style-type:none;
+  margin:1em 0 0em 0;
+  padding:0.25em 0;
+  border-bottom:1px solid #369;
+  }
+  div#menu li {
+  display:inline;
+  }
+  div#menu li a:link, div#menu li a:visited {
+  text-decoration:none;
+  padding:0.25em 0.5em;
+  background:#f0f9ff;
+  border:1px solid #369;
+  border-left-width:0;
+  }
+  div#menu li a:hover {
+  background:#9cf;
+  }
+  div#menu li a:active {
+  background:#fff;
+  }
+  div#menu li a.menu-0:link, div#menu li a.menu-0:visited {
+  margin-left:1em;
+  border-left:1px solid #369;
+  }
+  div#menu li a.menu-1:link, div#menu li a.menu-1:visited {
+  background:#fff;
+  border-bottom:2px solid #fff;
+  border-top-width:4px;
+  }
+  div#menu li a.menu-2:link, div#menu li a.menu-2:visited {
+  margin-right:1em;
+  } /* menubar */
+
+  /* fixed panels */
+  html, body {
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  }
+  div#header {
+  position:static;
+  }
+  div#wrapper {
+  position:absolute;
+  top:6em;
+  right:0;
+  bottom:0;
+  left:0;
+  overflow:hidden;
+  padding:1em;
+  }
+  div#toc {
+  position:absolute;
+  top:0;
+  width:20em;
+  bottom:0;
+  left:0;
+  overflow:auto;
+  padding:0 1em 1em 1em;
+  }
+  div#txt, div#text {
+  position:absolute;
+  top:0;
+  right:0;
+  bottom:0;
+  left:22em;
+  overflow:auto;
+  padding:0 1em 1em 1em;
+  }
+  div#text {
+  left:0;
+  }
+
+  /* timer box */
+  .timer {
+  position:fixed;
+  top:0.5em;
+  right:0.5em;
+  color:#69f;
+  }
+
+}
+
+@media print {
+  div#header {
+  display:none;
+  }
+  div#txt, div#text {
+  page-break-before:always;
+  }
+  .noprint, .timer {
+  display:none;
+  }
+} /* @media print */

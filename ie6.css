@@ -1,0 +1,22 @@
+html,body {
+overflow-y:auto;
+}
+div#header {
+position:static;
+height:6em;
+}
+div#wrapper {
+position:static;
+}
+div#toc {
+position:static;
+float:right;
+padding-right:1em;
+}
+div#txt {
+position:static;
+float:left;
+}
+div#text {
+position:static;
+}
