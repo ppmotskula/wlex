@@ -151,6 +151,7 @@ class SysCat
         return <<<END
 <div id="toc">$toc</div><!-- /toc -->
 <div id="txt">$res</div><!-- /txt -->
+
 END;
 
     }

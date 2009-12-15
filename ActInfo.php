@@ -285,6 +285,7 @@ class ActInfo
         $text = <<<END
 <p class="rem">Ametlik tekst: <a href="$src">$src</a><br />
 Vormindus: $PROG_ID $NOTICE</p>$text
+
 END;
 
         // success
@@ -381,6 +382,7 @@ $toc
 <a name="top"></a>
 $txt
 </div><!-- /txt -->
+
 END;
         } else {
             // no TOC needed
@@ -388,6 +390,7 @@ END;
 <div id="text">
 {$this->text}
 </div><!-- /text -->
+
 END;
         }
 

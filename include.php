@@ -31,6 +31,7 @@ $NOTICE = '© 2002-2009 <a href="http://peeterpaul.motskula.net/">Peeter P. Mõt
 $HOME = substr($_SERVER['PHP_SELF'], 0, -10);
 $TITLE = 'wLex';
 $TAGLINE = ' - parem Riigi Teataja';
+$BANNER = '';
 $ERT_HOME = 'https://www.riigiteataja.ee/ert';
 $ACTS_DB = 'data/acts.db';
 $SCAT_DB = 'data/scat.db';

@@ -217,6 +217,18 @@ font-weight:bold;
   color:#69f;
   }
 
+  /* front-page banner */
+  div#banner {
+  float:right;
+  width:20em;
+  margin:1em 0.5em;
+  padding:1em;
+  background:#ffc;
+  border-color:#999;
+  border-style:solid;
+  border-width:0 2px 2px 0;
+  }
+
 }
 
 @media print {
@@ -226,7 +238,7 @@ font-weight:bold;
   div#txt, div#text {
   page-break-before:always;
   }
-  .noprint, .timer {
+  .noprint, .timer, div#banner {
   display:none;
   }
 } /* @media print */

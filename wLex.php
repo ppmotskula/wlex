@@ -350,6 +350,7 @@ $toc
 <a name="top"></a>
 $txt
 </div><!-- /txt -->
+
 END;
         return;
     }
@@ -369,6 +370,7 @@ END;
 <p>Kõik seadused viimase redaktsiooni jõustumise järjekorras, uuemad eespool:</p>
 {$acts->printNew()}
 </div><!-- /text -->
+
 END;
         global $TITLE;
         $this->title = "$TITLE: värsked seadused";
@@ -389,6 +391,7 @@ END;
 <p>Lähiajal "vanaks minevad" seadused järgmise redaktsiooni jõustumise järjekorras:</p>
 {$acts->printUpcoming()}
 </div><!-- /text -->
+
 END;
         global $TITLE;
         $this->title = "$TITLE: vanad seadused";
@@ -430,6 +433,7 @@ END;
 <tr><td></td><td><input type="submit" value="Otsi!" /></td></tr>
 </table></form>
 </div><!-- /text -->
+
 END;
         global $TITLE;
         $this->title = "$TITLE: otsing";
@@ -443,11 +447,24 @@ END;
      */
     protected function homePage()
     {
-        global $HOME, $SCAT_DB;
+        global $HOME, $SCAT_DB, $TITLE, $BANNER;
         $cat_updated = date('d.m.y H:i', filemtime($SCAT_DB));
         $scat = new SysCat(TRUE);
         $this->content = <<<END
 <div id="text">
+
+END;
+
+        if ($BANNER > '') {
+            $this->content .= <<<END
+<div id="banner">
+$BANNER
+</div><!-- /banner -->
+
+END;
+        }
+
+        $this->content .= <<<END
 <h2>Värsked (hiljuti muudetud) seadused:</h2>
 {$scat->acts->printNew(10)}
 <ul><li><a href="$HOME/new">veel...</a></li></ul>
@@ -456,8 +473,8 @@ END;
 <ul><li><a href="$HOME/old">veel...</a></li></ul>
 <p>Kataloog viimati uuendatud {$cat_updated}</p>
 </div><!-- /text -->
+
 END;
-        global $TITLE;
         $this->title = "$TITLE: Eesti seadused";
     }
 
@@ -480,6 +497,7 @@ $man
 $PROG_ID $NOTICE
 </pre>
 </div><!-- /text -->
+
 END;
         global $TITLE;
         $this->title = "$TITLE: abiinfo";
@@ -500,6 +518,7 @@ END;
     <input type="text" name="act" value="{$this->request['act']}" title="Kirjuta siia otsitav tekst ja vajuta Enter" />
     <input type="submit" value="otsi!" />
 </div></form>
+
 END;
 
         $menubar =
@@ -528,6 +547,7 @@ END;
   })();
 
 </script>
+
 END;
         }
 
@@ -556,6 +576,7 @@ END
         . $this->content
         . <<<END
 </div><!-- /wrapper -->
+
 END
         . "<div class=\"timer\">"
         . (round(microtime(TRUE) - $this->timer, 3))
@@ -563,6 +584,7 @@ END
 . <<<END
 </body>
 </html>
+
 END;
         return $html;
     }
