@@ -102,7 +102,8 @@ function doTweetNew() {
             if ($act->valid == $today) {
                 doTweet(
                     "Värske {$act->title}: $ADDRESS/" .
-                    ($act->abbr > '' ? $act->abbr : urlencode($act->title))
+                    ($act->abbr > '' ? $act->abbr :
+                    urlencode(str_replace(' ', '+', $act->title)))
                 );
                 $got_new = TRUE;
             }

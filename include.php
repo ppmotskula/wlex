@@ -26,7 +26,7 @@ function __autoload($class_name)
 /**
  * Pseudo-constants
  */
-$PROG_ID = 'wLex 4.0.0';
+$PROG_ID = 'wLex 4.0.1';
 $NOTICE = '© 2002-2009 <a href="http://peeterpaul.motskula.net/">Peeter P. Mõtsküla</a>';
 $HOME = substr($_SERVER['PHP_SELF'], 0, -10);
 $TITLE = 'wLex';
