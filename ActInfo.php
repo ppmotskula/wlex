@@ -139,9 +139,25 @@ class ActInfo
      */
     public function loadText($force_reload = FALSE)
     {
-        // don't go to eRT unless you have to
+        // don't reload unless you have to
         if (($this->text > '') && !$force_reload) {
             return TRUE;
+        }
+
+        // fetch text from local cache if found
+        global $CACHE_DB;
+        $cacheDb = __FILE__ . "/../$CACHE_DB";
+        try  {
+            $db = new PDO("sqlite:$cacheDb");
+            $sql = $db->prepare('SELECT text FROM acts WHERE id = ?');
+            if ($sql) {
+                $sql->execute(array($this->id));
+                if ($this->text = $sql->fetchColumn()) {
+                    return TRUE;
+                }
+            }
+        } catch (PDOException $e) {
+            // ignore missing database
         }
 
         // fetch act's text from e-Riigi Teataja
@@ -290,6 +306,7 @@ END;
 
         // success
         $this->text = $text;
+        $this->_cacheAct();
         return TRUE;
     }
 
@@ -424,10 +441,55 @@ END;
         $txt = preg_replace('#([.,:;!?)])#m', " $1", $txt);
         $txt = preg_replace('#([(])#m', "$1 ", $txt);
 
-
-
-
         return $txt;
+    }
+
+    /**
+     * Attempts to save act's text into local cache, creating it if needed
+     *
+     * @return bool TRUE if successful
+     */
+    protected function _cacheAct()
+    {
+        global $CACHE_DB;
+
+        if (!$CACHE_DB) {
+            // $CACHE_DB not defined
+            return FALSE;
+        }
+
+        $cacheDb = __FILE__ . "/../$CACHE_DB";
+        try  {
+            $db = new PDO("sqlite:$cacheDb");
+            // create table if not there already
+            $sql = $db->prepare(<<<END
+CREATE TABLE IF NOT EXISTS acts (
+    id INTEGER PRIMARY KEY ON CONFLICT REPLACE,
+    title TEXT,
+    valid TEXT,
+    abbr TEXT,
+    text TEXT
+)
+END
+);
+            $sql->execute();
+
+            // insert or replace $id, $text into database
+            $sql = $db->prepare('INSERT INTO acts VALUES (?, ?, ?, ?, ?)');
+            $sql->execute(array(
+                $this->id,
+                $this->title,
+                $this->valid,
+                $this->abbr,
+                $this->text
+            ));
+        } catch (PDOException $e) {
+            // database creation/update error
+            return FALSE;
+        }
+
+        // success
+        return TRUE;
     }
 
 }

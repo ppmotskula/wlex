@@ -26,7 +26,7 @@ function __autoload($class_name)
 /**
  * Pseudo-constants
  */
-$PROG_ID = 'wLex 4.0.1';
+$PROG_ID = 'wLex 4.0.2';
 $NOTICE = '© 2002-2009 <a href="http://peeterpaul.motskula.net/">Peeter P. Mõtsküla</a>';
 $HOME = substr($_SERVER['PHP_SELF'], 0, -10);
 $TITLE = 'wLex';
@@ -36,6 +36,7 @@ $ERT_HOME = 'https://www.riigiteataja.ee/ert';
 $ACTS_DB = 'data/acts.db';
 $SCAT_DB = 'data/scat.db';
 $ABBR_DB = 'abbr.db';
+$CACHE_DB = 'data/cache.sqlite';
 $MANPAGE = 'man.htm';
 $SITEMAP = 'sitemap.xml';
 $UCCHARS = 'ÕÄÖÜŠŽ';
