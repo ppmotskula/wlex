@@ -129,7 +129,7 @@ class wLex
         $_act = ($act ? $act->title : $_act);
         unset($acts);
         $acts = new ActList();
-        $acts->doSearch($_act, $_now, $_src);
+        $acts->doSearch(urlencode($_act), $_now, $_src);
         if (count($acts->acts) == 1) {
             // single act found, display it
             foreach ($acts->acts as $act) {
@@ -193,7 +193,7 @@ class wLex
 
         // load new act's text into $new
         $acts = new ActList();
-        $acts->doSearch($_act, $_now);
+        $acts->doSearch(urlencode($_act), $_now);
         if (count($acts->acts) == 1) {
             // single act found, use it
             foreach ($acts->acts as $act) {
@@ -212,7 +212,7 @@ class wLex
 
         // load old act's text into $old
         $acts = new ActList();
-        $acts->doSearch($_act, $_old);
+        $acts->doSearch(urlencode($_act), $_old);
         if (count($acts->acts) == 1) {
             // single act found, use it
             foreach ($acts->acts as $act) {
@@ -528,7 +528,8 @@ END;
             . '<li><a' . ($this->menu_set == 'old' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/old/" title="Seadused, mille muudatused lähiajal jõustuvad">vanad</a></li>'
             . '<li><a' . ($this->menu_set == 'cat' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/cat/" title="Seaduste süstemaatiline kataloog">kataloog</a></li>'
             . '<li><a class="menu-2' . ($this->menu_set == 'man' ? ' menu-1' : '') . '" href="'.$HOME.'/man/" title="'.$TITLE.': abiteave">abi</a></li>'
-            ."</ul></div>\n"
+            . (preg_match('/<div id="toc">/', $this->content) ? '<li><a class="menu-0" id="tocSwitch" href="#" onclick="switchToc()">peida sisukord</a></li>' : '')
+            . "</ul></div>\n"
         ;
 
         global $GA_ID;
@@ -564,6 +565,7 @@ END;
     <link rel="stylesheet" type="text/css" href="$HOME/ie6.css" />
     <script type="text/javascript">onload = function() { header.focus() }</script>
     <![endif]-->
+    <script type="text/javascript" src="tocSwitch.js"></script>
     <meta name="generator" content="$PROG_ID" />
 $google_analytics</head>
 <body>

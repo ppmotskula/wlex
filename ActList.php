@@ -96,7 +96,8 @@ class ActList
 
             foreach ($file as $line) {
                 $pair = explode("\t", rtrim($line));
-                $abbr[lc($pair[0])] = $pair[1];
+                $abbr[mb_convert_case($pair[0], MB_CASE_LOWER, 'UTF-8')] =
+                    $pair[1];
             }
 
             unset($file);
@@ -158,7 +159,8 @@ class ActList
                     trim($items[4]), // nr
                     trim($items[5]), // valid
                     trim($items[6]), // until
-                    $abbr[lc(trim($items[3]))], // abbr
+                    $abbr[mb_convert_case(
+                            trim($items[3]), MB_CASE_LOWER, 'UTF-8')], // abbr
                     $as_of // as_of
                 );
             }
@@ -225,7 +227,6 @@ class ActList
             . "="
             . $what
         ;
-
         return $this->loadRemote($url, $date);
     }
 
@@ -273,10 +274,12 @@ class ActList
      */
     public function getActByTitle($title)
     {
-        $title = urlencode(lc($title));
+        $title = urlencode(mb_convert_case($title, MB_CASE_LOWER, 'UTF-8'));
 
         foreach ($this->acts as $act) {
-            if (urlencode(lc($act->title)) == $title) {
+            if (urlencode(
+                mb_convert_case($act->title, MB_CASE_LOWER, 'UTF-8')
+            ) == $title) {
                 return $act;
             }
         }

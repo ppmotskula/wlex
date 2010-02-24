@@ -167,7 +167,8 @@ font-weight:bold;
   }
   div#menu li a.menu-2:link, div#menu li a.menu-2:visited {
   margin-right:1em;
-  } /* menubar */
+  }
+
 
   /* fixed panels */
   html, body {

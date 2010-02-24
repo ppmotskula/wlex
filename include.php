@@ -39,8 +39,6 @@ $ABBR_DB = 'abbr.db';
 $CACHE_DB = 'data/cache.sqlite';
 $MANPAGE = 'man.htm';
 $SITEMAP = 'sitemap.xml';
-$UCCHARS = 'ÕÄÖÜŠŽ';
-$LCCHARS = 'õäöüšž';
 $NUMA   = "[0-9]+";
 $NUMR   = "[IVXLCDM]+";
 $NSUP   = "(?:<sup>$NUMA</sup>)";
@@ -55,30 +53,6 @@ $DATE   = "(?:$NUMA\. ?$NUMA\. ?$NUMA)";
 /**
  * Utility functions
  */
-
-
-/**
- * string lc($str)
- *
- * utf-8 enabled string conversion to lowercase
- */
-function lc($str)
-{
-    global $LCCHARS, $UCCHARS;
-    return strtr(strtolower($str), $UCCHARS, $LCCHARS);
-}
-
-
-/**
- * string uc($str)
- *
- * utf-8 enabled string conversion to uppercase
- */
-function uc($str)
-{
-    global $LCCHARS, $UCCHARS;
-    return strtr(strtoupper($str), $LCCHARS, $UCCHARS);
-}
 
 
 /**
