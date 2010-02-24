@@ -1,6 +1,6 @@
 ErrorDocument 500 /wlex/man/
 
-Options +FollowSymLinks
+Options +FollowSymLinks -MultiViews
 RewriteBase /wlex
 DirectoryIndex index.php
 RewriteEngine on
@@ -8,7 +8,7 @@ RewriteEngine on
 RewriteCond %{QUERY_STRING} ^act=(.+)&now=([^&]+)&old=(^&]+)$
 RewriteRule ^q$ %1/%2/%3? [R,L]
 
-RewriteCond %{QUERY_STRING} ^act=(.+)&now=([^&]+)$
+RewriteCond %{QUERY_STRING} ^act=(.+)&now=(.+)$
 RewriteRule ^q$ %1/%2? [R,L]
 
 RewriteCond %{QUERY_STRING} ^act=([^&]+)$

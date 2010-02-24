@@ -233,7 +233,7 @@ class wLex
         if ($old == '' || $new == '') {
             // one or both texts could not be loaded, bail out
             global $HOME;
-            $this->content = "Ei leidnud võrreldavaid akte (<a href=\"$HOME/man\">miks?</a>).";
+            $this->content = "Ei leidnud võrreldavaid akte (<a href=\"$HOME/man/\">miks?</a>).";
             return;
         }
 
@@ -467,10 +467,10 @@ END;
         $this->content .= <<<END
 <h2>Värsked (hiljuti muudetud) seadused:</h2>
 {$scat->acts->printNew(10)}
-<ul><li><a href="$HOME/new">veel...</a></li></ul>
+<ul><li><a href="$HOME/new/">veel...</a></li></ul>
 <h2>Vanad (varsti muutuvad) seadused:</h2>
 {$scat->acts->printUpcoming(10)}
-<ul><li><a href="$HOME/old">veel...</a></li></ul>
+<ul><li><a href="$HOME/old/">veel...</a></li></ul>
 <p>Kataloog viimati uuendatud {$cat_updated}</p>
 </div><!-- /text -->
 

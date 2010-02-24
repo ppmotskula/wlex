@@ -223,7 +223,7 @@ class ActList
             "$ERT_HOME/ert.jsp?link=searchRes&date_day=$date_d&date_month=$date_m&date_year=$date_y&"
             . ($fulltext ? "text" : "title")
             . "="
-            . urlencode($what)
+            . $what
         ;
 
         return $this->loadRemote($url, $date);
