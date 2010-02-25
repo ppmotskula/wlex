@@ -565,7 +565,7 @@ END;
     <link rel="stylesheet" type="text/css" href="$HOME/ie6.css" />
     <script type="text/javascript">onload = function() { header.focus() }</script>
     <![endif]-->
-    <script type="text/javascript" src="tocSwitch.js"></script>
+    <script type="text/javascript" src="$HOME/tocSwitch.js"></script>
     <meta name="generator" content="$PROG_ID" />
 $google_analytics</head>
 <body>
