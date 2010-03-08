@@ -27,11 +27,11 @@ class wLex
     protected $request;
 
     /**
-     * string $menu_set
+     * string $menuItem
      *
      * Used by htmlOut() to determine which main menu item to make active.
      */
-    protected $menu_set;
+    protected $menuItem;
 
     /**
      * protected float $timer
@@ -65,29 +65,29 @@ class wLex
 
         // main loop
         if (isset($this->request['act'])) {
-            $this->menu_set = 'act';
+            $this->menuItem = 'act';
             if (! isset($this->request['old'])) {
                 $this->showAct();
             } else {
                 $this->showDiff();
             }
         } elseif (isset($this->request['new'])) {
-            $this->menu_set = 'new';
+            $this->menuItem = 'new';
             $this->listNew();
         } elseif (isset($this->request['old'])) {
-            $this->menu_set = 'old';
+            $this->menuItem = 'old';
             $this->listOld();
         } elseif (isset($this->request['cat'])) {
-            $this->menu_set = 'cat';
+            $this->menuItem = 'cat';
             $this->listCat();
         } elseif (isset($this->request['src'])) {
-            $this->menu_set = 'src';
+            $this->menuItem = 'src';
             $this->searchPage();
         } elseif (isset($this->request['man'])) {
-            $this->menu_set = 'man';
+            $this->menuItem = 'man';
             $this->showManual();
         } else {
-            $this->menu_set = '';
+            $this->menuItem = '';
             $this->homePage();
         }
     }
@@ -158,13 +158,18 @@ class wLex
         }
 
         // no exact match, show list
-        $this->menu_set = 'src';
-        $this->content = "<div id=\"text\">\n{$acts->printSort()}\n</div><!-- /text -->\n";
-        $this->title = (
-            $_now
-            ? "? $_act ($_now) - $TITLE"
-            : "? $_act - $TITLE"
-        );
+        if (count($acts->acts) > 0) {
+            $this->content = "<div id=\"text\">\n{$acts->printSort()}\n</div><!-- /text -->\n";
+            $this->title = (
+                $_now
+                ? "? $_act ($_now) - $TITLE"
+                : "? $_act - $TITLE"
+            );
+            return;
+        }
+
+        // no match at all, show search page
+        $this->searchPage();
         return;
     }
 
@@ -418,25 +423,41 @@ END;
      */
     protected function searchPage()
     {
-        global $HOME;
+        // define local variables for shorter code
+        $act = $this->request['act'];
+        $src = $this->request['src'] == 'txt' ? ' checked' : '';
+        global $HOME, $TITLE;
 
-        // set $now to whatever was given in request, or today's date
+        // set $_now to whatever was given in request, or today's date
         $now = ($this->request['now'] ? $this->request['now'] : datetodmy(time()));
 
+        // set $message depending on query type (repeat / new)
+        $msg = $act ? "\n<ul><li>Akte ei leitud.</li></ul>\n" : '';
+
         $this->content = <<<END
-<div id="text">
+<div id="text">$msg
 <h2>Terviktekstide otsing e-Riigi Teatajast</h2>
 <form action="$HOME/q"><table>
-<tr><td>Otsi:</td><td><input type="text" name="act" size="40" /></td></tr>
+<tr><td>Otsi:</td><td><input type="text" name="act" value="$act" size="40" /></td></tr>
 <tr><td>seisuga:</td><td><input type="text" name="now" value="$now" size="10" /></td></tr>
-<tr><td></td><td><input type="checkbox" name="src" value="txt" /> nii aktide pealkirjadest kui tekstidest</td></tr>
+<tr><td></td><td><input type="checkbox" name="src" value="txt"$src /> nii aktide pealkirjadest kui tekstidest</td></tr>
 <tr><td></td><td><input type="submit" value="Otsi!" /></td></tr>
 </table></form>
 </div><!-- /text -->
 
 END;
-        global $TITLE;
-        $this->title = "$TITLE: otsing";
+
+        if ($act) {
+            $this->title = (
+                $now
+                ? "? $act ($now) - $TITLE"
+                : "? $act - $TITLE"
+            );
+        } else {
+            $this->title = "$TITLE: otsing";
+        }
+
+        $this->menuItem = 'src';
     }
 
 
@@ -513,7 +534,7 @@ END;
     {
         global $HOME, $TITLE, $TAGLINE, $PROG_ID, $NOTICE;
 
-        $quicksearch = <<<END
+        $quicksearch = ('src' == $this->menuItem) ? '' : <<<END
 <form style="float:right" action="$HOME/q"><div>
     <input type="text" name="act" value="{$this->request['act']}" title="Kirjuta siia otsitav tekst ja vajuta Enter" />
     <input type="submit" value="otsi!" />
@@ -523,13 +544,13 @@ END;
 
         $menubar =
             "<div id=\"menu\">\n$quicksearch<ul>"
-            . '<li><a class="menu-0' . ($this->menu_set == '' ? ' menu-1' : '') . '" href="'.$HOME.'/">avaleht</a></li>'
-            . '<li><a ' . ($this->menu_set == 'new' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/new/" title="Hiljuti lisatud või muudetud seadused">värsked</a></li>'
-            . '<li><a' . ($this->menu_set == 'old' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/old/" title="Seadused, mille muudatused lähiajal jõustuvad">vanad</a></li>'
-            . '<li><a' . ($this->menu_set == 'cat' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/cat/" title="Seaduste süstemaatiline kataloog">kataloog</a></li>'
-            . '<li><a class="menu-2' . ($this->menu_set == 'man' ? ' menu-1' : '') . '" href="'.$HOME.'/man/" title="'.$TITLE.': abiteave">abi</a></li>'
+            . '<li><a class="menu-0' . ($this->menuItem == '' ? ' menu-1' : '') . '" href="'.$HOME.'/">avaleht</a></li>'
+            . '<li><a' . ($this->menuItem == 'new' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/new/" title="Hiljuti lisatud või muudetud seadused">värsked</a></li>'
+            . '<li><a' . ($this->menuItem == 'old' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/old/" title="Seadused, mille muudatused lähiajal jõustuvad">vanad</a></li>'
+            . '<li><a' . ($this->menuItem == 'cat' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/cat/" title="Seaduste süstemaatiline kataloog">kataloog</a></li>'
+            . '<li><a class="menu-2' . ($this->menuItem == 'man' ? ' menu-1' : '') . '" href="'.$HOME.'/man/" title="'.$TITLE.': abiteave">abi</a></li>'
             . (preg_match('/<div id="toc">/', $this->content) ? '<li><a class="menu-0" id="tocSwitch" href="#" onclick="switchToc()">peida sisukord</a></li>' : '')
-            . "</ul></div>\n"
+            . "</ul>\n</div><!-- /menu -->\n"
         ;
 
         global $GA_ID;
