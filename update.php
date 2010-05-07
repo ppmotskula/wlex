@@ -27,36 +27,36 @@ function doSysCat() {
 function doSiteMap() {
     // Generate sitemaps.xml
     global $scat;
-    global $ADDRESS;
+    global $HOME;
     $today = datetoymd(time());
     $sitemap = <<<END
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
    <url>
-      <loc>$ADDRESS</loc>
+      <loc>$HOME</loc>
       <lastmod>$today</lastmod>
       <changefreq>daily</changefreq>
    </url>
    <url>
-      <loc>$ADDRESS/new/</loc>
+      <loc>$HOME/new/</loc>
       <lastmod>$today</lastmod>
       <changefreq>daily</changefreq>
    </url>
    <url>
-      <loc>$ADDRESS/old/</loc>
+      <loc>$HOME/old/</loc>
       <lastmod>$today</lastmod>
       <changefreq>daily</changefreq>
    </url>
    <url>
-      <loc>$ADDRESS/cat/</loc>
+      <loc>$HOME/cat/</loc>
       <lastmod>$today</lastmod>
       <changefreq>daily</changefreq>
    </url>
    <url>
-      <loc>$ADDRESS/man</loc>
+      <loc>$HOME/man</loc>
    </url>
    <url>
-      <loc>$ADDRESS/src</loc>
+      <loc>$HOME/src</loc>
    </url>
 
 END;
@@ -66,7 +66,7 @@ END;
         $adate = datetoymd(dmytodate($act->valid));
         $sitemap .= <<<END
     <url>
-        <loc>$ADDRESS/$aref</loc>
+        <loc>$HOME/$aref</loc>
         <lastmod>$adate</lastmod>
     </url>
 
@@ -80,7 +80,7 @@ END;
         echo <<<END
 sitemap.xml refreshed.
 Make sure you include the following line in your /robots.txt:
-Sitemap: $ADDRESS/$SITEMAP
+Sitemap: $HOME/$SITEMAP
 
 END;
         return TRUE;
@@ -93,14 +93,14 @@ END;
 function doTweetNew() {
     // tweet about new acts IF twitter parameters are set
     global $scat;
-    global $ADDRESS;
+    global $HOME;
     global $TW_USER;
     global $TW_PASS;
     $today = datetodmy(time());
     foreach ($scat->acts->acts as $act) {
         if ($act->valid == $today) {
             doTweet(
-                "Värske {$act->title}: $ADDRESS/" .
+                "Värske {$act->title}: $HOME/" .
                 ($act->abbr > '' ? $act->abbr :
                 urlencode(str_replace(' ', '+', $act->title)))
             );

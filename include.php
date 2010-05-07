@@ -26,11 +26,11 @@ function __autoload($class_name)
 /**
  * Pseudo-constants
  */
-$PROG_ID = 'wLex 4.1.1';
+$PROG_ID = 'wLex 4.1.2';
 $NOTICE = '© 2002-2010 <a href="http://peeterpaul.motskula.net/">Peeter P. Mõtsküla</a>';
 $HOME = substr($_SERVER['PHP_SELF'], 0, -10);
 $TITLE = 'wLex';
-$TAGLINE = ' - parem Riigi Teataja';
+$TAGLINE = ' - parem (kui) Riigi Teataja';
 $BANNER = '';
 $ERT_HOME = 'https://www.riigiteataja.ee/ert';
 $ACTS_DB = 'data/acts.db';

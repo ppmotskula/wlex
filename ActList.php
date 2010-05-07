@@ -56,7 +56,8 @@ class ActList
     /**
      * bool saveLocal()
      *
-     * Saves the list of acts to local file $ACTS_DB.
+     * Saves the list of acts to local file $ACTS_DB
+     * and updates act text cache.
      * Returns TRUE if successful, FALSE if not.
      */
     public function saveLocal()
@@ -65,6 +66,8 @@ class ActList
 
         foreach ($this->acts as $act) {
             $lines .= $act->asString() . "\n";
+            // load act's text, updating cache as necessary
+            $act->loadText();
         }
 
         global $ACTS_DB;

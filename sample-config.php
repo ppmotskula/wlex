@@ -3,7 +3,7 @@
 /**
  * Site-specific settings
  */
-$ADDRESS    = 'http://kasulik.info/wlex';
+$HOME       = 'http://kasulik.info/wlex';
 $TW_USER    = ''; // your Twitter username
 $TW_PASS    = ''; // your Twitter password
 $GA_ID      = ''; // your Google Analytics ID
