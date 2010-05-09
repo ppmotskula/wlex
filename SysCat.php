@@ -47,7 +47,7 @@ class SysCat
             return FALSE;
         }
         $this->scat = unserialize($data);
-        $this->acts->loadLocal();
+        return $this->acts->loadLocal();
     }
 
 

@@ -218,6 +218,15 @@ font-weight:bold;
   color:#69f;
   }
 
+  /* as-of box */
+  .asof {
+  position:fixed;
+  top:1em;
+  right:1em;
+  color:#ff0;
+  font-weight:bold;
+  }
+
   /* front-page banner */
   div#banner {
   float:right;
@@ -229,6 +238,14 @@ font-weight:bold;
   border-style:solid;
   border-width:0 2px 2px 0;
   }
+  
+  /* smspay-widget */
+  div#smspay-widget {
+  float:right;
+  width:22em;
+  margin:1em 0 1em 0.5em;
+  padding:1em;
+  }
 
 }
 
@@ -239,7 +256,7 @@ font-weight:bold;
   div#txt, div#text {
   page-break-before:always;
   }
-  .noprint, .timer, div#banner {
+  .noprint, .timer, .asof, div#banner {
   display:none;
   }
 } /* @media print */

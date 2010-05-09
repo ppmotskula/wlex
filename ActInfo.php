@@ -95,13 +95,18 @@ class ActInfo
      * string shortLink()
      *
      * Returns a short link to the act page.
+     * Act ID is used as link to static pages, otherwise abbreviation or title
      */
     public function shortLink()
     {
-        global $HOME;
-        $link = ($this->abbr > '' ? $this->abbr : $this->title);
-        $link = "$HOME/" . urlencode($link);
-        $link .= ($this->as_of > '' ? "/{$this->as_of}" : '');
+        global $STATIC, $HOME;
+        if ($STATIC) {
+            $link = "./{$this->id}.html";
+        } else {
+            $link = ($this->abbr > '' ? $this->abbr : $this->title);
+            $link = "$HOME/" . urlencode($link);
+            $link .= ($this->as_of > '' ? "/{$this->as_of}" : '');
+        }
         $link = "<a href=\"$link\">{$this->title}</a>";
         return $link;
     }
@@ -146,7 +151,7 @@ class ActInfo
 
         // fetch text from local cache if found
         global $CACHE_DB;
-        $cacheDb = __FILE__ . "/../$CACHE_DB";
+        $cacheDb = dirname(__FILE__) . "/$CACHE_DB";
         try  {
             $db = new PDO("sqlite:$cacheDb");
             $sql = $db->prepare('SELECT text FROM acts WHERE id = ?');
@@ -158,6 +163,7 @@ class ActInfo
             }
         } catch (PDOException $e) {
             // ignore missing database
+            throw $e;
         }
 
         // fetch act's text from e-Riigi Teataja
@@ -274,16 +280,18 @@ class ActInfo
 
         // enactment notices and backlinks
         global $HOME;
+        // use hard-coded $home when creating offline pages
+        $home = $HOME ? $HOME : 'http://kasulik.info/wlex';
         $text = preg_replace(
             "#<p>($DATE.*?($DATE)|Vastu võetud $DATE.*? jõustunud (?:($DATE)\.?(?: a\.)?|vastavalt .*?))</p>#mi",
             (
                 "<p class=\"x\">$1" .
                 '<span class="noprint">' .
-                " -- <a href=\"$HOME/" .
+                " -- <a href=\"$home/" .
                 ($this->abbr > '' ? $this->abbr : $this->title) .
                 "/$2$3" .
                 '">vaata</a> - ' .
-                "<a href=\"$HOME/" .
+                "<a href=\"$home/" .
                 ($this->abbr > '' ? $this->abbr : $this->title) .
                 '/' .
                 ($this->as_of > '' ? $this->as_of : datetodmy(time())) .
@@ -332,7 +340,7 @@ END;
             $txt = '';
 
             // work the text line by line
-            foreach (split("\n", $this->text) as $line) {
+            foreach (explode("\n", $this->text) as $line) {
                 if (preg_match(
                         "#^(<p class=\"pg\">)(<ins>|<del>)?§ ($SNUM)(.*?)(</ins>|</del>)?(</p>|<br />)$#",
                         $line, $m)) {
@@ -458,7 +466,7 @@ END;
             return FALSE;
         }
 
-        $cacheDb = __FILE__ . "/../$CACHE_DB";
+        $cacheDb = dirname(__FILE__) . "/$CACHE_DB";
         try  {
             $db = new PDO("sqlite:$cacheDb");
             // create table if not there already
@@ -485,6 +493,7 @@ END
             ));
         } catch (PDOException $e) {
             // database creation/update error
+            throw $e;
             return FALSE;
         }
 

@@ -10,84 +10,84 @@ class wLex
 
     /**
      * string $content
-     * string $title
-     *
-     * Hold the page content and page title.
+     * 
+     * Container for page content
      */
     public $content = '';
+
+    /**
+     * string $title
+     * 
+     * Container for page title
+     */
     public $title = '';
 
     /**
-     * array $request
+     * array $_request
      *
      * Contains the parameters with which wLex instance was created.
      * This is normally set to be equal with $_REQUEST but can be modified,
      * e.g. when wLex is used via command-line or otherwise.
      */
-    protected $request;
+    protected $_request;
 
     /**
-     * string $menuItem
+     * array $_menuItem
      *
-     * Used by htmlOut() to determine which main menu item to make active.
+     * Used by htmlOut() to determine which main menu item to make active
      */
-    protected $menuItem;
+    protected $_menuItem;
 
     /**
-     * protected float $timer
+     * float $_timer
      *
-     * Used for performance tracking.
+     * Used for performance tracking
      */
-    protected $timer;
-
-
+    protected $_timer;
+    
     /**
-     * void __construct([array $request])
-     *
+     * void __construct([array $request = NULL])
      * Main loop of wLex. Calls different subroutines according to
      * the arguments given to it. Each subroutine must set
      * $this->content and should set $this->title.
      *
-     * If $request is not given, $this->request is set to $_REQUEST.
+     * If $request is not given, $this->_request is set to $_REQUEST.
      */
-    public function __construct($request)
+    public function __construct($request = NULL)
     {
         // initialise timer
-        $this->timer = microtime(TRUE);
+        $this->_timer = microtime(TRUE);
 
-        // set $this->request to $request if provided, $_REQUEST if not
+        // set $this->_request to $request if provided, $_REQUEST if not
         // WARNING: we don't check whether $request is an array
-        if (func_num_args == 0) {
-            $this->request = $_REQUEST;
+        if (isset($request)) {
+            $this->_request = $request;
         } else {
-            $this->request = $request;
+            $this->_request = $_REQUEST;
         }
-
+        
         // main loop
-        if (isset($this->request['act'])) {
-            $this->menuItem = 'act';
-            if (! isset($this->request['old'])) {
+        if (isset($this->_request['act'])) {
+            $this->_menuItem = 'act';
+            if (! isset($this->_request['old'])) {
                 $this->showAct();
             } else {
                 $this->showDiff();
             }
-        } elseif (isset($this->request['new'])) {
-            $this->menuItem = 'new';
+        } elseif (isset($this->_request['new'])) {
+            $this->_menuItem = 'new';
             $this->listNew();
-        } elseif (isset($this->request['old'])) {
-            $this->menuItem = 'old';
+        } elseif (isset($this->_request['old'])) {
+            $this->_menuItem = 'old';
             $this->listOld();
-        } elseif (isset($this->request['cat'])) {
-            $this->menuItem = 'cat';
+        } elseif (isset($this->_request['cat'])) {
+            $this->_menuItem = 'cat';
             $this->listCat();
-        } elseif (isset($this->request['src'])) {
-            $this->menuItem = 'src';
+        } elseif (isset($this->_request['src'])) {
+            $this->_menuItem = 'src';
             $this->searchPage();
-        } elseif (isset($this->request['man'])) {
-            $this->menuItem = 'man';
-            $this->showManual();
         } else {
-            $this->menuItem = '';
+            $this->_menuItem = '';
             $this->homePage();
         }
     }
@@ -102,9 +102,9 @@ class wLex
     protected function showAct()
     {
         // define local variables for shorter code
-        $_act = $this->request['act'];
-        $_now = $this->request['now'];
-        $_src = $this->request['src'] == 'txt';
+        $_act = $this->_request['act'];
+        $_now = $this->_request['now'];
+        $_src = $this->_request['src'] == 'txt';
         global $TITLE;
 
         if ($_now == '') {
@@ -182,9 +182,9 @@ class wLex
     protected function showDiff()
     {
         // local variables for shorter code
-        $_act = $this->request['act'];
-        $_now = $this->request['now'];
-        $_old = $this->request['old'];
+        $_act = $this->_request['act'];
+        $_now = $this->_request['now'];
+        $_old = $this->_request['old'];
         global $TITLE;
 
         // set page title
@@ -249,7 +249,7 @@ class wLex
         error_reporting(E_ALL ^ E_NOTICE);
         require_once 'Text/Diff.php';
         require_once 'Text/Diff/Renderer/inline.php';
-        $diff = new Text_Diff('auto', array(split("\n", $old), split("\n", $new)));
+        $diff = new Text_Diff('auto', array(explode("\n", $old), explode("\n", $new)));
         $renderer = new Text_Diff_Renderer_inline();
         $txt = $renderer->render($diff);
 
@@ -424,12 +424,12 @@ END;
     protected function searchPage()
     {
         // define local variables for shorter code
-        $act = $this->request['act'];
-        $src = $this->request['src'] == 'txt' ? ' checked' : '';
+        $act = $this->_request['act'];
+        $src = $this->_request['src'] == 'txt' ? ' checked' : '';
         global $HOME, $TITLE;
 
         // set $_now to whatever was given in request, or today's date
-        $now = ($this->request['now'] ? $this->request['now'] : datetodmy(time()));
+        $now = ($this->_request['now'] ? $this->_request['now'] : datetodmy(time()));
 
         // set $message depending on query type (repeat / new)
         $msg = $act ? "\n<ul><li>Akte ei leitud.</li></ul>\n" : '';
@@ -457,7 +457,7 @@ END;
             $this->title = "$TITLE: otsing";
         }
 
-        $this->menuItem = 'src';
+        $this->_menuItem = 'src';
     }
 
 
@@ -468,60 +468,25 @@ END;
      */
     protected function homePage()
     {
-        global $HOME, $SCAT_DB, $TITLE, $BANNER;
-        $cat_updated = date('d.m.y H:i', filemtime($SCAT_DB));
-        $scat = new SysCat(TRUE);
+        global $HOME, $SCAT_DB, $TITLE, $FRONTPAGE, $PROG_ID, $NOTICE, $smspay_resp;
+        
+        $catUpdated = date('Y-m-d H:i', filemtime($SCAT_DB));
+        $front = @file_get_contents($FRONTPAGE)
+        or $front = "<p>Avalehe sisufaili ($FRONTPAGE) ei leitud.</p>\n";
+        
         $this->content = <<<END
 <div id="text">
-
-END;
-
-        if ($BANNER > '') {
-            $this->content .= <<<END
-<div id="banner">
-$BANNER
-</div><!-- /banner -->
-
-END;
-        }
-
-        $this->content .= <<<END
-<h2>Värsked (hiljuti muudetud) seadused:</h2>
-{$scat->acts->printNew(10)}
-<ul><li><a href="$HOME/new/">veel...</a></li></ul>
-<h2>Vanad (varsti muutuvad) seadused:</h2>
-{$scat->acts->printUpcoming(10)}
-<ul><li><a href="$HOME/old/">veel...</a></li></ul>
-<p>Kataloog viimati uuendatud {$cat_updated}</p>
-</div><!-- /text -->
-
-END;
-        $this->title = "$TITLE: Eesti seadused";
-    }
-
-
-    /**
-     * protected void showManual()
-     *
-     * Loads online documentation if provided, builtin manual if not.
-     */
-    protected function showManual()
-    {
-        global $PROG_ID, $NOTICE, $MANPAGE;
-        $man = @file_get_contents($MANPAGE)
-        or $man = "<p>Abiinfo faili ($MANPAGE) ei leitud.</p>\n";
-        $this->content = <<<END
-<div id="text">
-$man
+$smspay_resp
+$front
 <hr />
 <pre>
-$PROG_ID $NOTICE
+$PROG_ID $NOTICE. Kataloog värskendatud $catUpdated.
 </pre>
 </div><!-- /text -->
 
 END;
-        global $TITLE;
-        $this->title = "$TITLE: abiinfo";
+    
+        $this->title = "$TITLE: Eesti seadused";
     }
 
 
@@ -532,30 +497,45 @@ END;
      */
     public function htmlOut()
     {
-        global $HOME, $TITLE, $TAGLINE, $PROG_ID, $NOTICE;
+        global $STATIC, $HOME, $TITLE, $TAGLINE, $PROG_ID, $NOTICE, $GA_ID,
+               $SCAT_DB;
+        $home = $STATIC ? '.' : $HOME;
 
-        $quicksearch = ('src' == $this->menuItem) ? '' : <<<END
-<form style="float:right" action="$HOME/q"><div>
-    <input type="text" name="act" value="{$this->request['act']}" title="Kirjuta siia otsitav tekst ja vajuta Enter" />
+        if (!$STATIC) {
+            $quicksearch = ('src' == $this->_menuItem) ? '' : <<<END
+<form style="float:right" action="$home/q"><div>
+    <input type="text" name="act" value="{$this->_request['act']}" title="Kirjuta siia otsitav tekst ja vajuta Enter" />
     <input type="submit" value="otsi!" />
 </div></form>
 
 END;
+        }
+        
+        // different menubars for offline and online pages
+        if ($STATIC) {
+            $catUpdated = date('Y-m-d', filemtime($SCAT_DB));
+            $menubar =
+                "<div class=\"asof\">Väljavõte $catUpdated</div>\n"
+                . "<div id=\"menu\">\n<ul>"
+                . '<li><a class="menu-0' . ($this->_menuItem == 'cat' ? ' menu-1' : '') . '" href="'.$home.'/index.html">väljavõte</a></li>'
+                . '<li><a class="menu-2" href="'.$HOME.'">e-teenus</a></li>'
+                . (preg_match('/<div id="toc">/', $this->content) ? '<li><a class="menu-0" id="tocSwitch" href="#" onclick="switchToc()">peida sisukord</a></li>' : '')
+                . "</ul>\n</div><!-- /menu -->\n"
+            ;
+        } else {
+            $menubar =
+                "<div id=\"menu\">\n$quicksearch<ul>"
+                . '<li><a class="menu-0' . ($this->_menuItem == '' ? ' menu-1' : '') . '" href="'.$home.'/">avaleht</a></li>'
+                . '<li><a' . ($this->_menuItem == 'new' ? ' class="menu-1"' : '') . ' href="'.$home.'/new/" title="Hiljuti lisatud või muudetud seadused">värsked</a></li>'
+                . '<li><a' . ($this->_menuItem == 'old' ? ' class="menu-1"' : '') . ' href="'.$home.'/old/" title="Seadused, mille muudatused lähiajal jõustuvad">vanad</a></li>'
+                . '<li><a class="menu-2' . ($this->_menuItem == 'cat' ? ' menu-1' : '') . '" href="'.$home.'/cat/" title="Seaduste süstemaatiline kataloog">kataloog</a></li>'
+                . (preg_match('/<div id="toc">/', $this->content) ? '<li><a class="menu-0" id="tocSwitch" href="#" onclick="switchToc()">peida sisukord</a></li>' : '')
+                . "</ul>\n</div><!-- /menu -->\n"
+            ;
+        }
 
-        $menubar =
-            "<div id=\"menu\">\n$quicksearch<ul>"
-            . '<li><a class="menu-0' . ($this->menuItem == '' ? ' menu-1' : '') . '" href="'.$HOME.'/">avaleht</a></li>'
-            . '<li><a' . ($this->menuItem == 'new' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/new/" title="Hiljuti lisatud või muudetud seadused">värsked</a></li>'
-            . '<li><a' . ($this->menuItem == 'old' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/old/" title="Seadused, mille muudatused lähiajal jõustuvad">vanad</a></li>'
-            . '<li><a' . ($this->menuItem == 'cat' ? ' class="menu-1"' : '') . ' href="'.$HOME.'/cat/" title="Seaduste süstemaatiline kataloog">kataloog</a></li>'
-            . '<li><a class="menu-2' . ($this->menuItem == 'man' ? ' menu-1' : '') . '" href="'.$HOME.'/man/" title="'.$TITLE.': abiteave">abi</a></li>'
-            . (preg_match('/<div id="toc">/', $this->content) ? '<li><a class="menu-0" id="tocSwitch" href="#" onclick="switchToc()">peida sisukord</a></li>' : '')
-            . "</ul>\n</div><!-- /menu -->\n"
-        ;
-
-        global $GA_ID;
-        if ($GA_ID > '') {
-            $google_analytics = <<<END
+        // include google analytics only for online use and only if configured
+        $google_analytics = (!$STATIC || !$GA_ID) ? '' : <<<END
 <script type="text/javascript">
 
   var _gaq = _gaq || [];
@@ -571,22 +551,42 @@ END;
 </script>
 
 END;
-        }
 
+        // create output html
         $html = <<<END
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>{$this->title}</title>
-    <link rel="icon" href="$HOME/favicon.ico" type="image/x-icon" />
-    <link rel="shortcut icon" href="$HOME/favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" type="text/css" href="$HOME/style.css" />
+
+END;
+        // skip favicon for static pages
+        if (!$STATIC) {
+            $html .= <<<END
+    <link rel="icon" href="$home/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="$home/favicon.ico" type="image/x-icon" />
+
+END;
+        }
+        
+        $html .= <<<END
+    <link rel="stylesheet" type="text/css" href="$home/style.css" />
+
+END;
+        if ($STATIC && $this->_menuItem == 'cat' || $this->_menuItem == '') {
+            $html .= <<<END
+    <link href="http://smspay.fortumo.com/stylesheets/smspay.css" media="screen" rel="stylesheet" type="text/css" />
+
+END;
+        }
+
+        $html .= <<<END
     <!--[if lt IE 7]>
-    <link rel="stylesheet" type="text/css" href="$HOME/ie6.css" />
+    <link rel="stylesheet" type="text/css" href="$home/ie6.css" />
     <script type="text/javascript">onload = function() { header.focus() }</script>
     <![endif]-->
-    <script type="text/javascript" src="$HOME/tocSwitch.js"></script>
+    <script type="text/javascript" src="$home/tocSwitch.js"></script>
     <meta name="generator" content="$PROG_ID" />
 $google_analytics</head>
 <body>
@@ -595,23 +595,28 @@ $google_analytics</head>
 $menubar
 </div><!-- /header -->
 <div id="wrapper">
-END
-        . $this->content
-        . <<<END
+{$this->content}
 </div><!-- /wrapper -->
 
-END
-        . "<div class=\"timer\">"
-        . (round(microtime(TRUE) - $this->timer, 3))
-        . "</div>\n"
-. <<<END
+END;
+
+        // skip generation time for offline pages
+        if (!$STATIC) {
+            $html .=
+                "<div class=\"timer\">"
+                . (round(microtime(TRUE) - $this->_timer, 3))
+                . "</div>\n"
+            ;
+        }
+        
+        // wrap up html
+        $html .= <<<END
 </body>
 </html>
 
 END;
+
         return $html;
     }
 
 }
-
-?>

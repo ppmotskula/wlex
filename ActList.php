@@ -72,7 +72,6 @@ class ActList
 
         global $ACTS_DB;
         return @file_put_contents($ACTS_DB, $lines);
-
     }
 
 

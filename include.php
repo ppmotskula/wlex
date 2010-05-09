@@ -13,7 +13,6 @@
 error_reporting(E_STRICT | E_ALL ^ E_NOTICE);
 date_default_timezone_set('Europe/Tallinn');
 
-
 /**
  * Class autoloader
  */
@@ -26,18 +25,17 @@ function __autoload($class_name)
 /**
  * Pseudo-constants
  */
-$PROG_ID = 'wLex 4.1.2';
+$PROG_ID = 'wLex 4.2.0';
 $NOTICE = '© 2002-2010 <a href="http://peeterpaul.motskula.net/">Peeter P. Mõtsküla</a>';
 $HOME = substr($_SERVER['PHP_SELF'], 0, -10);
 $TITLE = 'wLex';
 $TAGLINE = ' - parem (kui) Riigi Teataja';
-$BANNER = '';
+$FRONTPAGE = 'front.htm';
 $ERT_HOME = 'https://www.riigiteataja.ee/ert';
 $ACTS_DB = 'data/acts.db';
 $SCAT_DB = 'data/scat.db';
 $ABBR_DB = 'abbr.db';
 $CACHE_DB = 'data/cache.sqlite';
-$MANPAGE = 'man.htm';
 $SITEMAP = 'sitemap.xml';
 $NUMA   = "[0-9]+";
 $NUMR   = "[IVXLCDM]+";
@@ -109,10 +107,15 @@ function datetoymd($ts)
 
 
 /**
- * Finally, load custom config if present
+ * Load custom config if present
  */
 if (file_exists('config.php')) {
     require_once('config.php');
 }
 
-?>
+/**
+ * Initialise smspay
+ */
+if (file_exists('smspay.php')) {
+    include('smspay.php');
+}

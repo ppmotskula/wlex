@@ -2,16 +2,18 @@
 
 require_once('include.php');
 
-$scat = new SysCat;
+$scat = new SysCat();
 doSysCat();
+doStatic();
 doSiteMap();
 doTweetNew();
 
-
 function doSysCat() {
     // Reload syscat. This may take several minutes.
-    global $scat;
     $timer = time();
+
+    global $scat;
+    
     if (
         $scat->loadRemote() &&
         $scat->saveLocal()
@@ -24,10 +26,31 @@ function doSysCat() {
     }
 }
 
+function doStatic() {
+    // Recreate static pages. This may take several minutes.
+    $timer = time();
+    
+    global $scat, $STATIC;
+    $STATIC = TRUE;
+    
+    $app = new wLex(array('cat' => TRUE));
+    file_put_contents('./wLex/index.html', $app->htmlOut());
+    
+    foreach ($scat->acts->acts as $act) {
+        $actRef = $act->abbr ? $act->abbr : $act->title;
+        $actFile = "./wLex/{$act->id}.html";
+        $app = new wLex(array('act' => $actRef));
+        file_put_contents($actFile, $app->htmlOut());
+    }
+    
+    $STATIC = FALSE;
+    
+    echo "Static pages updated, time: " . (time() - $timer) . " s.\n"; 
+}
+
 function doSiteMap() {
     // Generate sitemaps.xml
-    global $scat;
-    global $HOME;
+    global $scat, $HOME;
     $today = datetoymd(time());
     $sitemap = <<<END
 <?xml version="1.0" encoding="UTF-8"?>
@@ -92,10 +115,7 @@ END;
 
 function doTweetNew() {
     // tweet about new acts IF twitter parameters are set
-    global $scat;
-    global $HOME;
-    global $TW_USER;
-    global $TW_PASS;
+    global $scat, $HOME, $TW_USER, $TW_PASS;
     $today = datetodmy(time());
     foreach ($scat->acts->acts as $act) {
         if ($act->valid == $today) {
@@ -161,5 +181,3 @@ function doTweet($tweet) {
     }
     echo "Not tweeting '$tweet'.\n";
 }
-
-?>
