@@ -124,40 +124,6 @@ function doTweetNew() {
                 ($act->abbr > '' ? $act->abbr :
                 urlencode(str_replace(' ', '+', $act->title)))
             );
-            $got_new = TRUE;
-        }
-    }
-    if (!$got_new) {
-        // nothing new today, check for upcoming changes
-
-        foreach ($scat->acts->acts as $key => $row) {
-            $act_until[$key] = (
-                $row->until > ''
-                ? datetoymd(dmytodate($row->until))
-                : 'x'
-            );
-            $act_title[$key] = $row->title;
-        }
-        array_multisort($act_until, SORT_ASC, $act_title, SORT_ASC, $scat->acts->acts);
-
-        // find the first day when some acts will be due for change
-        $nextExpiryDate = $scat->acts->acts[0]->until;
-        $nextChangeDate = datetodmy(dmytodate($nextExpiryDate) + 86400);
-        $actsChanging = 0;
-        foreach ($scat->acts->acts as $act) {
-            if ($act->until == $nextExpiryDate) {
-                $actsChanging++;
-            } else {
-                break;
-            }
-        }
-
-        // tweet about the upcoming change
-        $act = $scat->acts->acts[0];
-        if (1 == $actsChanging) {
-            doTweet("$nextChangeDate jõustub uus {$act->title}.");
-        } else {
-            doTweet("$nextChangeDate jõustuvad $actsChanging uut seadust.");
         }
     }
 }
