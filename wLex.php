@@ -535,7 +535,7 @@ END;
         }
 
         // include google analytics only for online use and only if configured
-        $google_analytics = (!$STATIC || !$GA_ID) ? '' : <<<END
+        $google_analytics = ($STATIC || !$GA_ID) ? '' : <<<END
 <script type="text/javascript">
 
   var _gaq = _gaq || [];
