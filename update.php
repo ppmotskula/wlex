@@ -129,21 +129,23 @@ function doTweetNew() {
 }
 
 function doTweet($tweet) {
-    global $TW_USER, $TW_PASS;
-    if ($TW_USER > '' && $TW_PASS > '') {
+    global $TW_OAUTH;
+    require_once 'lib/tmhOAuth/tmhOAuth.php';
+    if (is_array($TW_OAUTH)) {
+        $tmhOAuth = new tmhOAuth($TW_OAUTH);
+        
         // post a message to Twitter
-        echo "Tweeting: '$tweet'.\n";
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'http://twitter.com/statuses/update.xml');
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "status=$tweet");
-        curl_setopt($ch, CURLOPT_USERPWD, "$TW_USER:$TW_PASS");
-        $buffer = curl_exec($ch);
-        curl_close($ch);
-        // check for success or failure
-        return (!empty($buffer));
+        echo "Tweeting: '$tweet'... ";
+        $tmhOAuth->request('POST', $tmhOAuth->url('1/statuses/update'), array(
+            'status' => $tweet,
+        ));
+        
+        // return success/failure
+        if ($tmhOAuth->response['code'] == 200) {
+            echo "OK\n";
+        } else {
+            echo "FAILED\n";
+        }
     }
     echo "Not tweeting '$tweet'.\n";
 }
